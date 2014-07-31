@@ -53,7 +53,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
     Ok(())
 }
 
-fn render_chapters(book: &Book, tgt: &Path) -> CliResult<()> {
+fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     let tmp = TempDir::new("rust-book")
                       .expect("could not create temporary directory"); // FIXME: lift to Result instead
 
@@ -130,7 +130,7 @@ impl Subcommand for Build {
         match book::parse_summary(summary, &src) {
             Ok(book) => {
                 // execute rustdoc on the whole book
-                render_chapters(&book, &tgt).map_err(|err| {
+                render(&book, &tgt).map_err(|err| {
                     term.err(format!("error: {}", err.description()).as_slice());
                     err.detail().map(|detail| {
                         term.err(format!("detail: {}", detail).as_slice());
