@@ -114,6 +114,8 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         }
     }
 
+    // create index.html from the root README
+    try!(fs::copy(&tgt.join("README.html"), &tgt.join("index.html")));
     Ok(())
 }
 
