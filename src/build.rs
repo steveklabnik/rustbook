@@ -64,11 +64,11 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
 
         // preprocess the markdown, rerouting markdown references to html references
         let markdown_data = try!(File::open(&item.path).read_to_string());
-        let processed_path = tmp.path().join(item.path.filename().unwrap());
+        let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
         {
-            let mut processed_file = File::create(&processed_path);
-            processed_file.write_str(md_urls.replace_all(markdown_data.as_slice(),
-                                                         "[$title]($url_stem.html)").as_slice());
+            try!(File::create(&preprocessed_path)
+                      .write_str(md_urls.replace_all(markdown_data.as_slice(),
+                                                     "[$title]($url_stem.html)").as_slice()));
         }
 
         // write the prelude to a temporary HTML file for rustdoc inclusion
@@ -87,10 +87,12 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
             try!(writeln!(toc, "</div></div>"));
         }
 
+        let out_path = tgt.join(item.path.dirname());
+        try!(fs::mkdir_recursive(&out_path, io::UserDir));
+
         let output_result = Command::new("rustdoc")
-            .arg(&processed_path)
-            //.arg(&item.path)
-            .arg("-o").arg(&tgt.join(item.path.dirname()))
+            .arg(&preprocessed_path)
+            .arg("-o").arg(&out_path)
             .arg(format!("--html-before-content={}", prelude.display()))
             .arg(format!("--html-after-content={}", postlude.display()))
             .arg("--markdown-css").arg(item.path_to_root.join("rust-book.css"))
