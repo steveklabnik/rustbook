@@ -1,3 +1,6 @@
+// The rust-book CSS in string form.
+
+pub static STYLE: &'static str = r#"
 @import url("http://static.rust-lang.org/doc/master/rust.css");
 
 body {
@@ -56,3 +59,4 @@ body {
 .chapter li a {
     color: #000000;
 }
+"#;

@@ -1,5 +1,5 @@
 [package]
 
-name = "rust-book"
+name = "rustbook"
 version = "0.1.0"
 authors = [ "aturon@mozilla.com" ]

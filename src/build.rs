@@ -9,6 +9,7 @@ use term::Term;
 use error::{Error, CliResult};
 use book;
 use book::{Book, BookItem};
+use css;
 
 use regex::Regex;
 
@@ -127,6 +128,8 @@ impl Subcommand for Build {
         let tgt = cwd.join("_book");
 
         fs::mkdir(&tgt, io::UserDir); // FIXME: handle errors
+
+        File::create(&tgt.join("rust-book.css")).write_str(css::STYLE); // FIXME: handle errors
 
         let summary = File::open(&src.join("SUMMARY.md"));
         match book::parse_summary(summary, &src) {

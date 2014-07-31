@@ -28,6 +28,8 @@ mod build;
 mod serve;
 mod test;
 
+mod css;
+
 fn main() {
     let mut term = Term::new();
     let cmd = os::args();
