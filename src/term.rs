@@ -6,8 +6,8 @@ use std::io::IoResult;
 
 pub struct Term {
     verbose: bool,
-    out: Box<Writer>,
-    err: Box<Writer>
+    out: Box<Writer + 'static>,
+    err: Box<Writer + 'static>
 }
 
 impl Term {

@@ -56,6 +56,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 
 fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     let tmp = TempDir::new("rust-book")
+                      .ok()
                       .expect("could not create temporary directory"); // FIXME: lift to Result instead
 
     for (section, item) in book.iter() {
