@@ -5,7 +5,7 @@ use std::fmt::{Show, Formatter};
 
 use std::io::IoError;
 
-pub type CliError = Box<Error>;
+pub type CliError = Box<Error + 'static>;
 pub type CliResult<T> = Result<T, CliError>;
 
 pub trait Error {
@@ -19,14 +19,14 @@ pub trait FromError<E> {
     fn from_err(err: E) -> Self;
 }
 
-impl Show for Box<Error> {
+impl Show for Box<Error + 'static> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.description())
     }
 }
 
-impl<E: Error + 'static> FromError<E> for Box<Error> {
-    fn from_err(err: E) -> Box<Error> {
+impl<E: Error + 'static> FromError<E> for Box<Error + 'static> {
+    fn from_err(err: E) -> Box<Error + 'static> {
         box err as Box<Error>
     }
 }
