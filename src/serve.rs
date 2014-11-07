@@ -19,5 +19,5 @@ impl Subcommand for Serve {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(self, term: &mut Term) {}
+    fn execute(&mut self, term: &mut Term) {}
 }

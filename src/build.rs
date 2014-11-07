@@ -125,7 +125,7 @@ impl Subcommand for Build {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(self, term: &mut Term) {
+    fn execute(&mut self, term: &mut Term) {
         let cwd = os::getcwd();
         let src = cwd.clone();
         let tgt = cwd.join("_book");
@@ -146,7 +146,7 @@ impl Subcommand for Build {
                 });
             }
             Err(errors) => {
-                for err in errors.move_iter() {
+                for err in errors.into_iter() {
                     term.err(err.as_slice());
                 }
             }

@@ -40,10 +40,10 @@ impl<'a> Iterator<(String, &'a BookItem)> for BookItems<'a> {
                 let mut section = "".to_string();
                 for &(_, idx) in self.stack.iter() {
                     section.push_str((idx + 1).to_string().as_slice());
-                    section.push_char('.');
+                    section.push('.');
                 }
                 section.push_str((self.cur_idx + 1).to_string().as_slice());
-                section.push_char('.');
+                section.push('.');
 
                 self.stack.push((self.cur_items, self.cur_idx));
                 self.cur_items = cur.children.as_slice();

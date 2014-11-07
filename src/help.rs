@@ -18,7 +18,7 @@ impl Subcommand for Help {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(self, term: &mut Term) {
+    fn execute(&mut self, term: &mut Term) {
         usage()
     }
 }
