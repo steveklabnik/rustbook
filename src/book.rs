@@ -39,14 +39,14 @@ impl<'a> Iterator<(String, &'a BookItem)> for BookItems<'a> {
 
                 let mut section = "".to_string();
                 for &(_, idx) in self.stack.iter() {
-                    section.push_str((idx + 1).to_string().as_slice());
+                    section.push_str((idx + 1).to_string()[]);
                     section.push('.');
                 }
-                section.push_str((self.cur_idx + 1).to_string().as_slice());
+                section.push_str((self.cur_idx + 1).to_string()[]);
                 section.push('.');
 
                 self.stack.push((self.cur_items, self.cur_idx));
-                self.cur_items = cur.children.as_slice();
+                self.cur_items = cur.children[];
                 self.cur_idx = 0;
                 return Some((section, cur))
             }
@@ -57,7 +57,7 @@ impl<'a> Iterator<(String, &'a BookItem)> for BookItems<'a> {
 impl Book {
     pub fn iter(&self) -> BookItems {
         BookItems {
-            cur_items: self.chapters.as_slice(),
+            cur_items: self.chapters[],
             cur_idx: 0,
             stack: Vec::new(),
         }
@@ -78,7 +78,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
 
             let tip = stack.pop().unwrap();
             let last = stack.len() - 1;
-            stack.get_mut(last).children.push(tip);
+            stack[last].children.push(tip);
         }
     }
 
@@ -104,7 +104,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
             }
         };
 
-        item_re.captures(line.as_slice()).map(|cap| {
+        item_re.captures(line[]).map(|cap| {
             let given_path = cap.name("path");
             let title = cap.name("title").to_string();
 

@@ -39,7 +39,7 @@ impl<'a> Error for &'a str {
 
 impl Error for String {
     fn description<'a>(&'a self) -> &'a str {
-        self.as_slice()
+        self[]
     }
 }
 
@@ -56,7 +56,7 @@ impl Error for IoError {
         self.desc
     }
     fn detail(&self) -> Option<&str> {
-        self.detail.as_ref().map(|s| s.as_slice())
+        self.detail.as_ref().map(|s| s[])
     }
 }
 

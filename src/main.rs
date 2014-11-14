@@ -1,3 +1,5 @@
+#![feature(slicing_syntax)]
+
 #![feature(macro_rules)]
 #![feature(phase)]
 #[phase(plugin)]
@@ -36,7 +38,7 @@ fn main() {
 
     match cmd.tail().head() {
         Some(name) => {
-            match subcommand::parse_name(name.as_slice()) {
+            match subcommand::parse_name(name[]) {
                 Some(mut subcmd) => {
                     match subcmd.parse_args(cmd.tail()) {
                         Ok(_) => {
