@@ -77,15 +77,15 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         {
             let mut toc = BufferedWriter::new(try!(File::create(&prelude)));
             write_toc(book, &item.path_to_root, &mut toc);
-            try!(writeln!(toc, "<div id='page-wrapper'>"));
-            try!(writeln!(toc, "<div id='page'>"));
+            try!(writeln!(&mut toc, "<div id='page-wrapper'>"));
+            try!(writeln!(&mut toc, "<div id='page'>"));
         }
 
         // write the postlude to a temporary HTML file for rustdoc inclusion
         let postlude = tmp.path().join("postlude.html");
         {
             let mut toc = BufferedWriter::new(try!(File::create(&postlude)));
-            try!(writeln!(toc, "</div></div>"));
+            try!(writeln!(&mut toc, "</div></div>"));
         }
 
         let out_path = tgt.join(item.path.dirname());
@@ -125,7 +125,7 @@ impl Subcommand for Build {
     }
     fn usage(&self) {}
     fn execute(&mut self, term: &mut Term) {
-        let cwd = os::getcwd();
+        let cwd = os::getcwd().unwrap();
         let src = cwd.clone();
         let tgt = cwd.join("_book");
 
