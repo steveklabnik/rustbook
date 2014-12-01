@@ -1,7 +1,7 @@
 // The rust-book CSS in string form.
 
 pub static STYLE: &'static str = r#"
-@import url("http://static.rust-lang.org/doc/master/rust.css");
+@import url("//static.rust-lang.org/doc/master/rust.css");
 
 body {
     max-width:none;
