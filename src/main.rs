@@ -32,6 +32,7 @@ mod test;
 
 mod css;
 
+#[cfg(not(test))] // thanks #12327
 fn main() {
     let mut term = Term::new();
     let cmd = os::args();
