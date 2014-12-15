@@ -14,11 +14,11 @@ pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
 }
 
 impl Subcommand for Help {
-    fn parse_args(&mut self, args: &[String]) -> CliResult<()> {
+    fn parse_args(&mut self, _: &[String]) -> CliResult<()> {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(&mut self, term: &mut Term) {
+    fn execute(&mut self, _: &mut Term) {
         usage()
     }
 }

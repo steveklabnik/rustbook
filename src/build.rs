@@ -11,8 +11,6 @@ use book;
 use book::{Book, BookItem};
 use css;
 
-use regex::Regex;
-
 struct Build;
 
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
@@ -37,7 +35,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
                  item.title));
         if !item.children.is_empty() {
             try!(writeln!(out, "<ul class='section'>"));
-            walk_items(item.children[], section, path_to_root, out);
+            let _ = walk_items(item.children[], section, path_to_root, out);
             try!(writeln!(out, "</ul>"));
         }
         try!(writeln!(out, "</li>"));
@@ -76,7 +74,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let prelude = tmp.path().join("prelude.html");
         {
             let mut toc = BufferedWriter::new(try!(File::create(&prelude)));
-            write_toc(book, &item.path_to_root, &mut toc);
+            let _ = write_toc(book, &item.path_to_root, &mut toc);
             try!(writeln!(&mut toc, "<div id='page-wrapper'>"));
             try!(writeln!(&mut toc, "<div id='page'>"));
         }
@@ -89,7 +87,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         }
 
         let out_path = tgt.join(item.path.dirname());
-        try!(fs::mkdir_recursive(&out_path, io::UserDir));
+        try!(fs::mkdir_recursive(&out_path, io::USER_DIR));
 
         let output_result = Command::new("rustdoc")
             .arg(&preprocessed_path)
@@ -120,7 +118,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
 }
 
 impl Subcommand for Build {
-    fn parse_args(&mut self, args: &[String]) -> CliResult<()> {
+    fn parse_args(&mut self, _: &[String]) -> CliResult<()> {
         Ok(())
     }
     fn usage(&self) {}
@@ -129,15 +127,15 @@ impl Subcommand for Build {
         let src = cwd.clone();
         let tgt = cwd.join("_book");
 
-        fs::mkdir(&tgt, io::UserDir); // FIXME: handle errors
+        let _ = fs::mkdir(&tgt, io::USER_DIR); // FIXME: handle errors
 
-        File::create(&tgt.join("rust-book.css")).write_str(css::STYLE); // FIXME: handle errors
+        let _ = File::create(&tgt.join("rust-book.css")).write_str(css::STYLE); // FIXME: handle errors
 
         let summary = File::open(&src.join("SUMMARY.md"));
         match book::parse_summary(summary, &src) {
             Ok(book) => {
                 // execute rustdoc on the whole book
-                render(&book, &tgt).map_err(|err| {
+                let _ = render(&book, &tgt).map_err(|err| {
                     term.err(format!("error: {}", err.description())[]);
                     err.detail().map(|detail| {
                         term.err(format!("detail: {}", detail)[]);

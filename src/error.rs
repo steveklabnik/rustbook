@@ -44,7 +44,7 @@ impl Error for String {
 }
 
 impl FromError<()> for () {
-    fn from_err(error: ()) -> () { () }
+    fn from_err(_: ()) -> () { () }
 }
 
 impl FromError<IoError> for IoError {

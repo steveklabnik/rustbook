@@ -3,8 +3,6 @@
 use std::io::BufferedReader;
 use std::iter::AdditiveIterator;
 
-use regex::Regex;
-
 pub struct BookItem {
     pub title: String,
     pub path: Path,
