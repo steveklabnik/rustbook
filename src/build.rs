@@ -22,13 +22,19 @@ pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
 }
 
 fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()> {
-    fn walk_items(items: &[BookItem], section: &str, path_to_root: &Path, out: &mut Writer) -> IoResult<()> {
+    fn walk_items(items: &[BookItem],
+                  section: &str,
+                  path_to_root: &Path,
+                  out: &mut Writer) -> IoResult<()> {
         for (i, item) in items.iter().enumerate() {
             try!(walk_item(item, format!("{}{}.", section, i + 1)[], path_to_root, out));
         }
         Ok(())
     }
-    fn walk_item(item: &BookItem, section: &str, path_to_root: &Path, out: &mut Writer) -> IoResult<()> {
+    fn walk_item(item: &BookItem,
+                 section: &str,
+                 path_to_root: &Path,
+                 out: &mut Writer) -> IoResult<()> {
         try!(writeln!(out, "<li><a href='{}'><b>{}</b> {}</a>",
                  path_to_root.join(item.path.with_extension("html")).display(),
                  section,
@@ -55,7 +61,8 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     let tmp = TempDir::new("rust-book")
                       .ok()
-                      .expect("could not create temporary directory"); // FIXME: lift to Result instead
+                      // FIXME: lift to Result instead
+                      .expect("could not create temporary directory");
 
     for (section, item) in book.iter() {
         println!("{} {}", section, item.title);
@@ -66,8 +73,9 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let markdown_data = try!(File::open(&item.path).read_to_string());
         let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
         {
+            let urls = md_urls.replace_all(markdown_data[], "[$title]($url_stem.html)");
             try!(File::create(&preprocessed_path)
-                      .write_str(md_urls.replace_all(markdown_data[], "[$title]($url_stem.html)")[]));
+                      .write_str(urls[]));
         }
 
         // write the prelude to a temporary HTML file for rustdoc inclusion
@@ -129,7 +137,8 @@ impl Subcommand for Build {
 
         let _ = fs::mkdir(&tgt, io::USER_DIR); // FIXME: handle errors
 
-        let _ = File::create(&tgt.join("rust-book.css")).write_str(css::STYLE); // FIXME: handle errors
+        // FIXME: handle errors
+        let _ = File::create(&tgt.join("rust-book.css")).write_str(css::STYLE);
 
         let summary = File::open(&src.join("SUMMARY.md"));
         match book::parse_summary(summary, &src) {
