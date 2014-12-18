@@ -32,7 +32,7 @@ impl<E: Error + 'static> FromError<E> for Box<Error + 'static> {
 }
 
 impl<'a> Error for &'a str {
-    fn description<'a>(&'a self) -> &'a str {
+    fn description<'b>(&'b self) -> &'b str {
         *self
     }
 }
