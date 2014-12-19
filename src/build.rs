@@ -11,6 +11,8 @@ use book;
 use book::{Book, BookItem};
 use css;
 
+use regex::Regex;
+
 struct Build;
 
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
@@ -67,7 +69,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     for (section, item) in book.iter() {
         println!("{} {}", section, item.title);
 
-        let md_urls = regex!(r"\[(?P<title>[^]]*)\]\((?P<url_stem>[^)]*)\.(?P<ext>md|markdown)\)");
+        let md_urls = Regex::new(r"\[(?P<title>[^]]*)\]\((?P<url_stem>[^)]*)\.(?P<ext>md|markdown)\)").unwrap();
 
         // preprocess the markdown, rerouting markdown references to html references
         let markdown_data = try!(File::open(&item.path).read_to_string());
