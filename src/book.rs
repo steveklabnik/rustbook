@@ -2,6 +2,7 @@
 
 use std::io::BufferedReader;
 use std::iter::AdditiveIterator;
+use regex::Regex;
 
 pub struct BookItem {
     pub title: String,
@@ -80,7 +81,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
         }
     }
 
-    let item_re = regex!(r"(?P<indent>[\t ]*)\*[:space:]*\[(?P<title>.*)\]\((?P<path>.*)\)");
+    let item_re = Regex::new(r"(?P<indent>[\t ]*)\*[:space:]*\[(?P<title>.*)\]\((?P<path>.*)\)").unwrap();
     let mut top_items = vec!();
     let mut stack = vec!();
     let mut errors = vec!();

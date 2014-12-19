@@ -1,9 +1,6 @@
 #![feature(slicing_syntax)]
 
 #![feature(macro_rules)]
-#![feature(phase)]
-#[phase(plugin)]
-extern crate regex_macros;
 extern crate regex;
 
 use std::os;
