@@ -107,7 +107,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
             let given_path = cap.name("path");
             let title = cap.name("title").to_string();
 
-            let path_from_root = match src.join(given_path.unwrap()).path_relative_from(src) {
+            let path_from_root = match src.join(given_path).path_relative_from(src) {
                 Some(p) => p,
                 None => {
                     errors.push(format!("Paths in SUMMARY.md must be relative, \
@@ -123,7 +123,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
                 path_to_root: path_to_root,
                 children: vec!(),
             };
-            let level = cap.name("indent").unwrap().chars().map(|c| {
+            let level = cap.name("indent").chars().map(|c| {
                 match c {
                     ' ' => 1u,
                     '\t' => 4,
