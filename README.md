@@ -25,7 +25,7 @@ separate markdown files. The contents of the book are determined by a
 
 * [Why to use WhizBang](why/README.md)
     * [First reason](why/first.md)
-    * [Second reason](why/first.md)
+    * [Second reason](why/second.md)
 * [How to use WhizBang](how/README.md)
     * [Installing](how/installing.md)
     * [Usage](how/usage.md)
