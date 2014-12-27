@@ -15,7 +15,7 @@ macro_rules! try (
             Err(err) => return Err(error::FromError::from_err(err))
         }
     })
-)
+);
 
 mod term;
 mod error;
