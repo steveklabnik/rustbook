@@ -1,3 +1,13 @@
+// Copyright 2014 The Rust Project Developers. See the COPYRIGHT
+// file at the top-level directory of this distribution and at
+// http://rust-lang.org/COPYRIGHT.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
 //! Implementation of the `build` subcommand, used to compile a book.
 
 use std::os;
@@ -69,7 +79,8 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     for (section, item) in book.iter() {
         println!("{} {}", section, item.title);
 
-        let md_urls = Regex::new(r"\[(?P<title>[^]]*)\]\((?P<url_stem>[^)]*)\.(?P<ext>md|markdown)\)").unwrap();
+        let regex = r"\[(?P<title>[^]]*)\]\((?P<url_stem>[^)]*)\.(?P<ext>md|markdown)\)";
+        let md_urls = Regex::new(regex).unwrap();
 
         // preprocess the markdown, rerouting markdown references to html references
         let markdown_data = try!(File::open(&item.path).read_to_string());
