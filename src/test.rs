@@ -13,6 +13,9 @@
 use subcommand::Subcommand;
 use error::CliResult;
 use term::Term;
+use book;
+use std::io::{Command, File};
+use std::os;
 
 struct Test;
 
@@ -29,5 +32,37 @@ impl Subcommand for Test {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(&mut self, _: &mut Term) {}
+    fn execute(&mut self, term: &mut Term) {
+        let cwd = os::getcwd().unwrap();
+        let src = cwd.clone();
+
+        let summary = File::open(&src.join("SUMMARY.md"));
+        match book::parse_summary(summary, &src) {
+            Ok(book) => {
+                for (_, item) in book.iter() {
+                    let output_result = Command::new("rustdoc")
+                        .arg(&item.path)
+                        .arg("--test")
+                        .output();
+                    match output_result {
+                        Ok(output) => {
+                            if !output.output.is_empty() || !output.error.is_empty() {
+                                term.err(format!("{}\n{}",
+                                         String::from_utf8_lossy(output.output[]),
+                                         String::from_utf8_lossy(output.error[]))[]);
+                            }
+                        }
+                        Err(e) => {
+                            term.err(format!("Could not execute `rustdoc`: {}", e)[]);
+                        }
+                    }
+                }
+            }
+            Err(errors) => {
+                for err in errors.into_iter() {
+                    term.err(err[]);
+                }
+            }
+        }
+    }
 }
