@@ -50,7 +50,10 @@ fn main() {
                 Some(mut subcmd) => {
                     match subcmd.parse_args(cmd.tail()) {
                         Ok(_) => {
-                            subcmd.execute(&mut term);
+                            match subcmd.execute(&mut term) {
+                                Ok(_) => (),
+                                Err(_) => os::set_exit_status(-1),
+                            }
                         }
                         Err(err) => {
                             println!("{}", err);

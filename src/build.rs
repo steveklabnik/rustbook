@@ -16,7 +16,7 @@ use std::io::{fs, Command, File, BufferedWriter, TempDir, IoResult};
 
 use subcommand::Subcommand;
 use term::Term;
-use error::{Error, CliResult};
+use error::{Error, CliResult, CommandResult};
 use book;
 use book::{Book, BookItem};
 use css;
@@ -143,7 +143,7 @@ impl Subcommand for Build {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(&mut self, term: &mut Term) {
+    fn execute(&mut self, term: &mut Term) -> CommandResult<()> {
         let cwd = os::getcwd().unwrap();
         let src = cwd.clone();
         let tgt = cwd.join("_book");
@@ -170,5 +170,7 @@ impl Subcommand for Build {
                 }
             }
         }
+
+        Ok(()) // lol
     }
 }

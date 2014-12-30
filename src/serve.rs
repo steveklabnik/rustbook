@@ -12,6 +12,7 @@
 
 use subcommand::Subcommand;
 use error::CliResult;
+use error::CommandResult;
 use term::Term;
 
 struct Serve;
@@ -29,5 +30,7 @@ impl Subcommand for Serve {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(&mut self, _: &mut Term) {}
+    fn execute(&mut self, _: &mut Term) -> CommandResult<()> {
+        Ok(())
+    }
 }
