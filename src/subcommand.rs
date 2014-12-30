@@ -11,6 +11,7 @@
 //! Common API for all rust-book subcommands.
 
 use error::CliResult;
+use error::CommandResult;
 use term::Term;
 
 use help;
@@ -26,7 +27,7 @@ pub trait Subcommand {
     /// Print the CLI usage information.
     fn usage(&self);
     /// Actually execute the subcommand.
-    fn execute(&mut self, term: &mut Term);
+    fn execute(&mut self, term: &mut Term) -> CommandResult<()>;
 }
 
 /// Create a Subcommand object based on its name.

@@ -18,6 +18,9 @@ use std::io::IoError;
 pub type CliError = Box<Error + 'static>;
 pub type CliResult<T> = Result<T, CliError>;
 
+pub type CommandError = Box<Error + 'static>;
+pub type CommandResult<T> = Result<T, CommandError>;
+
 pub trait Error {
     fn description(&self) -> &str;
 

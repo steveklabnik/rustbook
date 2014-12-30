@@ -12,6 +12,7 @@
 
 use subcommand::Subcommand;
 use error::CliResult;
+use error::CommandResult;
 use term::Term;
 use book;
 use std::io::{Command, File};
@@ -32,7 +33,7 @@ impl Subcommand for Test {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(&mut self, term: &mut Term) {
+    fn execute(&mut self, term: &mut Term) -> CommandResult<()> {
         let cwd = os::getcwd().unwrap();
         let src = cwd.clone();
 
@@ -64,5 +65,7 @@ impl Subcommand for Test {
                 }
             }
         }
+
+        Ok(()) // lol
     }
 }

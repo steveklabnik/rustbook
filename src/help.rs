@@ -12,6 +12,7 @@
 
 use subcommand::Subcommand;
 use error::CliResult;
+use error::CommandResult;
 use term::Term;
 
 struct Help;
@@ -28,8 +29,9 @@ impl Subcommand for Help {
         Ok(())
     }
     fn usage(&self) {}
-    fn execute(&mut self, _: &mut Term) {
-        usage()
+    fn execute(&mut self, _: &mut Term) -> CommandResult<()> {
+        usage();
+        Ok(())
     }
 }
 
