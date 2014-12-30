@@ -79,11 +79,19 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     for (section, item) in book.iter() {
         println!("{} {}", section, item.title);
 
+        let out_path = tgt.join(item.path.dirname());
+
         let regex = r"\[(?P<title>[^]]*)\]\((?P<url_stem>[^)]*)\.(?P<ext>md|markdown)\)";
         let md_urls = Regex::new(regex).unwrap();
 
+        let src;
+        if os::args().len() < 3 {
+            src = os::getcwd().unwrap().clone();
+        } else {
+            src = Path::new(os::args()[2].clone());
+        }
         // preprocess the markdown, rerouting markdown references to html references
-        let markdown_data = try!(File::open(&item.path).read_to_string());
+        let markdown_data = try!(File::open(&src.join(&item.path)).read_to_string());
         let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
         {
             let urls = md_urls.replace_all(markdown_data[], "[$title]($url_stem.html)");
@@ -107,7 +115,6 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
             try!(writeln!(&mut toc, "</div></div>"));
         }
 
-        let out_path = tgt.join(item.path.dirname());
         try!(fs::mkdir_recursive(&out_path, io::USER_DIR));
 
         let output_result = Command::new("rustdoc")
@@ -145,8 +152,20 @@ impl Subcommand for Build {
     fn usage(&self) {}
     fn execute(&mut self, term: &mut Term) -> CommandResult<()> {
         let cwd = os::getcwd().unwrap();
-        let src = cwd.clone();
-        let tgt = cwd.join("_book");
+        let src;
+        let tgt;
+
+        if os::args().len() < 3 {
+            src = cwd.clone();
+        } else {
+            src = Path::new(os::args()[2].clone());
+        }
+
+        if os::args().len() < 4 {
+            tgt = cwd.join("_book");
+        } else {
+            tgt = Path::new(os::args()[3].clone());
+        }
 
         let _ = fs::mkdir(&tgt, io::USER_DIR); // FIXME: handle errors
 
