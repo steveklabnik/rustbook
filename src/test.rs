@@ -13,6 +13,7 @@
 use subcommand::Subcommand;
 use error::CliResult;
 use error::CommandResult;
+use error::Error;
 use term::Term;
 use book;
 use std::io::{Command, File};
@@ -47,14 +48,16 @@ impl Subcommand for Test {
                         .output();
                     match output_result {
                         Ok(output) => {
-                            if !output.output.is_empty() || !output.error.is_empty() {
+                            if !output.status.success() {
                                 term.err(format!("{}\n{}",
                                          String::from_utf8_lossy(output.output[]),
                                          String::from_utf8_lossy(output.error[]))[]);
+                                return Err(box "Some tests failed." as Box<Error>);
                             }
+
                         }
                         Err(e) => {
-                            term.err(format!("Could not execute `rustdoc`: {}", e)[]);
+                            return Err(box format!("Could not execute `rustdoc`: {}", e) as Box<Error>);
                         }
                     }
                 }
@@ -63,9 +66,9 @@ impl Subcommand for Test {
                 for err in errors.into_iter() {
                     term.err(err[]);
                 }
+                return Err(box "There was an error." as Box<Error>);
             }
         }
-
         Ok(()) // lol
     }
 }
