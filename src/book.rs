@@ -13,6 +13,7 @@
 use std::io::BufferedReader;
 use std::iter::AdditiveIterator;
 use regex::Regex;
+use std::iter;
 
 pub struct BookItem {
     pub title: String,
@@ -116,7 +117,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
 
         item_re.captures(line[]).map(|cap| {
             let given_path = cap.name("path");
-            let title = cap.name("title").to_string();
+            let title = cap.name("title").unwrap().to_string();
 
             let path_from_root = match src.join(given_path.unwrap()).path_relative_from(src) {
                 Some(p) => p,
@@ -127,7 +128,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
                     Path::new("")
                 }
             };
-            let path_to_root = Path::new("../".repeat(path_from_root.components().count() - 1));
+            let path_to_root = Path::new(iter::repeat("../").take(path_from_root.components().count() - 1).collect::<String>());
             let item = BookItem {
                 title: title,
                 path: path_from_root,
