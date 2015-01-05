@@ -23,6 +23,8 @@ use css;
 
 use regex::Regex;
 
+use rustdoc;
+
 struct Build;
 
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
@@ -117,14 +119,16 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
 
         try!(fs::mkdir_recursive(&out_path, io::USER_DIR));
 
-        let output_result = Command::new("rustdoc")
-            .arg(&preprocessed_path)
-            .arg("-o").arg(&out_path)
-            .arg(format!("--html-before-content={}", prelude.display()))
-            .arg(format!("--html-after-content={}", postlude.display()))
-            .arg("--markdown-css").arg(item.path_to_root.join("rust-book.css"))
-            .arg("--markdown-no-toc")
-            .output();
+        let rustdoc_args: &[String] = &[
+            preprocessed_path.display().to_string(),
+            format!("-o {}", out_path.display()),
+            format!("--html-before-content={}", prelude.display()),
+            format!("--html-after-content={}", postlude.display()),
+            format!("--markdown-css {}", item.path_to_root.join("rust-book.css").display()),
+            "--markdown-no-toc".to_string(),
+        ];
+        let output_result = rustdoc::main_args(rustdoc_args);
+        /*
         match output_result {
             Ok(output) => {
                 if !output.output.is_empty() || !output.error.is_empty() {
@@ -138,6 +142,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
                 return Err(box format!("Could not execute `rustdoc`: {}", e) as Box<Error>);
             }
         }
+        */
     }
 
     // create index.html from the root README

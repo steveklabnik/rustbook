@@ -11,9 +11,9 @@
 //! Basic data structures for representing a book.
 
 use std::io::BufferedReader;
+use std::iter;
 use std::iter::AdditiveIterator;
 use regex::Regex;
-use std::iter;
 
 pub struct BookItem {
     pub title: String,
@@ -33,7 +33,9 @@ pub struct BookItems<'a> {
     stack: Vec<(&'a [BookItem], uint)>,
 }
 
-impl<'a> Iterator<(String, &'a BookItem)> for BookItems<'a> {
+impl<'a> Iterator for BookItems<'a> {
+    type Item = (String, &'a BookItem);
+
     fn next(&mut self) -> Option<(String, &'a BookItem)> {
         loop {
             if self.cur_idx >= self.cur_items.len() {
