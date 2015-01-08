@@ -12,7 +12,7 @@
 
 use std::os;
 use std::io;
-use std::io::{fs, Command, File, BufferedWriter, TempDir, IoResult};
+use std::io::{fs, File, BufferedWriter, TempDir, IoResult};
 
 use subcommand::Subcommand;
 use term::Term;

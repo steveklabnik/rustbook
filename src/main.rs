@@ -10,7 +10,6 @@
 
 #![feature(slicing_syntax)]
 
-#![feature(macro_rules)]
 extern crate regex;
 
 extern crate rustdoc;
