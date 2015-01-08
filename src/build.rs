@@ -122,7 +122,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let rustdoc_args: &[String] = &[
             "".to_string(),
             preprocessed_path.display().to_string(),
-            format!("-o {}", out_path.display()),
+            format!("-o{}", out_path.display()),
             format!("--html-before-content={}", prelude.display()),
             format!("--html-after-content={}", postlude.display()),
             format!("--markdown-css={}", item.path_to_root.join("rust-book.css").display()),
