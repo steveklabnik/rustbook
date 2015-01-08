@@ -51,14 +51,14 @@ impl<'a> Iterator for BookItems<'a> {
 
                 let mut section = "".to_string();
                 for &(_, idx) in self.stack.iter() {
-                    section.push_str((idx + 1).to_string()[]);
+                    section.push_str(&(idx + 1).to_string()[]);
                     section.push('.');
                 }
-                section.push_str((self.cur_idx + 1).to_string()[]);
+                section.push_str(&(self.cur_idx + 1).to_string()[]);
                 section.push('.');
 
                 self.stack.push((self.cur_items, self.cur_idx));
-                self.cur_items = cur.children[];
+                self.cur_items = &cur.children[];
                 self.cur_idx = 0;
                 return Some((section, cur))
             }
@@ -69,7 +69,7 @@ impl<'a> Iterator for BookItems<'a> {
 impl Book {
     pub fn iter(&self) -> BookItems {
         BookItems {
-            cur_items: self.chapters[],
+            cur_items: &self.chapters[],
             cur_idx: 0,
             stack: Vec::new(),
         }
@@ -117,7 +117,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
             }
         };
 
-        item_re.captures(line[]).map(|cap| {
+        item_re.captures(&line[]).map(|cap| {
             let given_path = cap.name("path");
             let title = cap.name("title").unwrap().to_string();
 
@@ -126,7 +126,7 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
                 None => {
                     errors.push(format!("Paths in SUMMARY.md must be relative, \
                                          but path '{}' for section '{}' is not.",
-                                         given_path, title));
+                                         given_path.unwrap(), title));
                     Path::new("")
                 }
             };

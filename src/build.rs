@@ -41,7 +41,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
                   path_to_root: &Path,
                   out: &mut Writer) -> IoResult<()> {
         for (i, item) in items.iter().enumerate() {
-            try!(walk_item(item, format!("{}{}.", section, i + 1)[], path_to_root, out));
+            try!(walk_item(item, &format!("{}{}.", section, i + 1)[], path_to_root, out));
         }
         Ok(())
     }
@@ -55,7 +55,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
                  item.title));
         if !item.children.is_empty() {
             try!(writeln!(out, "<ul class='section'>"));
-            let _ = walk_items(item.children[], section, path_to_root, out);
+            let _ = walk_items(&item.children[], section, path_to_root, out);
             try!(writeln!(out, "</ul>"));
         }
         try!(writeln!(out, "</li>"));
@@ -65,7 +65,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 
     try!(writeln!(out, "<div id='toc'>"));
     try!(writeln!(out, "<ul class='chapter'>"));
-    try!(walk_items(book.chapters[], "", path_to_root, out));
+    try!(walk_items(&book.chapters[], "", path_to_root, out));
     try!(writeln!(out, "</ul>"));
     try!(writeln!(out, "</div>"));
 
@@ -96,9 +96,9 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let markdown_data = try!(File::open(&src.join(&item.path)).read_to_string());
         let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
         {
-            let urls = md_urls.replace_all(markdown_data[], "[$title]($url_stem.html)");
+            let urls = md_urls.replace_all(&markdown_data[], "[$title]($url_stem.html)");
             try!(File::create(&preprocessed_path)
-                      .write_str(urls[]));
+                      .write_str(&urls[]));
         }
 
         // write the prelude to a temporary HTML file for rustdoc inclusion
@@ -182,15 +182,15 @@ impl Subcommand for Build {
             Ok(book) => {
                 // execute rustdoc on the whole book
                 let _ = render(&book, &tgt).map_err(|err| {
-                    term.err(format!("error: {}", err.description())[]);
+                    term.err(&format!("error: {}", err.description())[]);
                     err.detail().map(|detail| {
-                        term.err(format!("detail: {}", detail)[]);
+                        term.err(&format!("detail: {}", detail)[]);
                     })
                 });
             }
             Err(errors) => {
                 for err in errors.into_iter() {
-                    term.err(err[]);
+                    term.err(&err[]);
                 }
             }
         }

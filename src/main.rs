@@ -9,7 +9,6 @@
 // except according to those terms.
 
 #![feature(slicing_syntax)]
-#![feature(associated_types)]
 
 #![feature(macro_rules)]
 extern crate regex;
@@ -50,7 +49,7 @@ fn main() {
     if cmd.len() < 1 {
         help::usage()
     } else {
-        match subcommand::parse_name(cmd[1][]) {
+        match subcommand::parse_name(&cmd[1][]) {
             Some(mut subcmd) => {
                 match subcmd.parse_args(cmd.tail()) {
                     Ok(_) => {
@@ -60,7 +59,7 @@ fn main() {
                         }
                     }
                     Err(err) => {
-                        println!("{}", err);
+                        println!("{}", err.description());
                         println!("");
                         subcmd.usage();
                     }
