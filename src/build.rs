@@ -128,21 +128,9 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
             "--markdown-no-toc".to_string(),
         ];
         let output_result = rustdoc::main_args(rustdoc_args);
-        /*
-        match output_result {
-            Ok(output) => {
-                if !output.output.is_empty() || !output.error.is_empty() {
-                    return Err(box format!("{}\n{}",
-                                           String::from_utf8_lossy(output.output[]),
-                                           String::from_utf8_lossy(output.error[]))
-                               as Box<Error>);
-                }
-            }
-            Err(e) => {
-                return Err(box format!("Could not execute `rustdoc`: {}", e) as Box<Error>);
-            }
+        if output_result != 0 {
+                return Err(box format!("Could not execute `rustdoc`: {}", output_result) as Box<Error>);
         }
-        */
     }
 
     // create index.html from the root README
