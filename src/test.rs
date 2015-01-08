@@ -49,9 +49,9 @@ impl Subcommand for Test {
                     match output_result {
                         Ok(output) => {
                             if !output.status.success() {
-                                term.err(format!("{}\n{}",
-                                         String::from_utf8_lossy(output.output[]),
-                                         String::from_utf8_lossy(output.error[]))[]);
+                                term.err(&format!("{}\n{}",
+                                         String::from_utf8_lossy(&output.output[]),
+                                         String::from_utf8_lossy(&output.error[]))[]);
                                 return Err(box "Some tests failed." as Box<Error>);
                             }
 
@@ -64,7 +64,7 @@ impl Subcommand for Test {
             }
             Err(errors) => {
                 for err in errors.into_iter() {
-                    term.err(err[]);
+                    term.err(&err[]);
                 }
                 return Err(box "There was an error." as Box<Error>);
             }
