@@ -1,5 +1,10 @@
 [package]
 
 name = "rustbook"
-version = "0.1.0"
-authors = [ "aturon@mozilla.com" ]
+version = "0.2.0"
+authors = [ "Steve Klabnik <steve@steveklabnik.com>",
+            "aturon@mozilla.com" ]
+
+description = "Create multi-chapter documentation with Rustdoc."
+license = "Apache-2.0"
+repository = "https://github.com/steveklabnik/rustbook"
