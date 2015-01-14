@@ -8,10 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(slicing_syntax)]
+#![feature(slicing_syntax, box_syntax)]
 
-#![feature(macro_rules)]
 extern crate regex;
+
+extern crate rustdoc;
 
 use std::os;
 use subcommand::Subcommand;
@@ -44,33 +45,35 @@ fn main() {
     let mut term = Term::new();
     let cmd = os::args();
 
-    match cmd.tail().head() {
-        Some(name) => {
-            match subcommand::parse_name(name[]) {
-                Some(mut subcmd) => {
-                    match subcmd.parse_args(cmd.tail()) {
-                        Ok(_) => {
-                            match subcmd.execute(&mut term) {
-                                Ok(_) => (),
-                                Err(_) => os::set_exit_status(-1),
+    if cmd.len() < 1 {
+        help::usage()
+    } else {
+        match subcommand::parse_name(&cmd[1][]) {
+            Some(mut subcmd) => {
+                match subcmd.parse_args(cmd.tail()) {
+                    Ok(_) => {
+                        match subcmd.execute(&mut term) {
+                            Ok(_) => (),
+                            Err(err) => {
+                                term.err(&format!("error: {}", err.description())[]);
+                                err.detail().map(|detail| {
+                                    term.err(&format!("detail: {}", detail)[]);
+                                });
                             }
                         }
-                        Err(err) => {
-                            println!("{}", err);
-                            println!("");
-                            subcmd.usage();
-                        }
+                    }
+                    Err(err) => {
+                        println!("{}", err.description());
+                        println!("");
+                        subcmd.usage();
                     }
                 }
-                None => {
-                    println!("Unrecognized command '{}'.", name);
-                    println!("");
-                    help::usage();
-                }
             }
-        }
-        None => {
-            help::usage();
+            None => {
+                println!("Unrecognized command '{}'.", cmd[1]);
+                println!("");
+                help::usage();
+            }
         }
     }
 }

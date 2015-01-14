@@ -52,8 +52,14 @@ impl<'a> Error for &'a str {
 
 impl Error for String {
     fn description<'a>(&'a self) -> &'a str {
-        self[]
+        &self[]
     }
+}
+
+impl<'a> Error for Box<Error + 'a> {
+    fn description(&self) -> &str { (**self).description() }
+    fn detail(&self) -> Option<&str> { (**self).detail() }
+    fn cause(&self) -> Option<&Error> { (**self).cause() }
 }
 
 impl FromError<()> for () {
@@ -69,8 +75,9 @@ impl Error for IoError {
         self.desc
     }
     fn detail(&self) -> Option<&str> {
-        self.detail.as_ref().map(|s| s[])
+        self.detail.as_ref().map(|s| &s[])
     }
 }
+
 
 //fn iter_map_err<T, U, E, I: Iterator<Result<T,E>>>(iter: I,

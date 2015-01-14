@@ -12,7 +12,7 @@
 
 use std::os;
 use std::io;
-use std::io::{fs, Command, File, BufferedWriter, TempDir, IoResult};
+use std::io::{fs, File, BufferedWriter, TempDir, IoResult};
 
 use subcommand::Subcommand;
 use term::Term;
@@ -22,6 +22,8 @@ use book::{Book, BookItem};
 use css;
 
 use regex::Regex;
+
+use rustdoc;
 
 struct Build;
 
@@ -39,7 +41,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
                   path_to_root: &Path,
                   out: &mut Writer) -> IoResult<()> {
         for (i, item) in items.iter().enumerate() {
-            try!(walk_item(item, format!("{}{}.", section, i + 1)[], path_to_root, out));
+            try!(walk_item(item, &format!("{}{}.", section, i + 1)[], path_to_root, out));
         }
         Ok(())
     }
@@ -53,7 +55,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
                  item.title));
         if !item.children.is_empty() {
             try!(writeln!(out, "<ul class='section'>"));
-            let _ = walk_items(item.children[], section, path_to_root, out);
+            let _ = walk_items(&item.children[], section, path_to_root, out);
             try!(writeln!(out, "</ul>"));
         }
         try!(writeln!(out, "</li>"));
@@ -63,7 +65,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 
     try!(writeln!(out, "<div id='toc'>"));
     try!(writeln!(out, "<ul class='chapter'>"));
-    try!(walk_items(book.chapters[], "", path_to_root, out));
+    try!(walk_items(&book.chapters[], "", path_to_root, out));
     try!(writeln!(out, "</ul>"));
     try!(writeln!(out, "</div>"));
 
@@ -71,10 +73,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 }
 
 fn render(book: &Book, tgt: &Path) -> CliResult<()> {
-    let tmp = TempDir::new("rust-book")
-                      .ok()
-                      // FIXME: lift to Result instead
-                      .expect("could not create temporary directory");
+    let tmp = try!(TempDir::new("rust-book"));
 
     for (section, item) in book.iter() {
         println!("{} {}", section, item.title);
@@ -94,9 +93,9 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let markdown_data = try!(File::open(&src.join(&item.path)).read_to_string());
         let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
         {
-            let urls = md_urls.replace_all(markdown_data[], "[$title]($url_stem.html)");
+            let urls = md_urls.replace_all(&markdown_data[], "[$title]($url_stem.html)");
             try!(File::create(&preprocessed_path)
-                      .write_str(urls[]));
+                      .write_str(&urls[]));
         }
 
         // write the prelude to a temporary HTML file for rustdoc inclusion
@@ -117,26 +116,20 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
 
         try!(fs::mkdir_recursive(&out_path, io::USER_DIR));
 
-        let output_result = Command::new("rustdoc")
-            .arg(&preprocessed_path)
-            .arg("-o").arg(&out_path)
-            .arg(format!("--html-before-content={}", prelude.display()))
-            .arg(format!("--html-after-content={}", postlude.display()))
-            .arg("--markdown-css").arg(item.path_to_root.join("rust-book.css"))
-            .arg("--markdown-no-toc")
-            .output();
-        match output_result {
-            Ok(output) => {
-                if !output.output.is_empty() || !output.error.is_empty() {
-                    return Err(box format!("{}\n{}",
-                                           String::from_utf8_lossy(output.output[]),
-                                           String::from_utf8_lossy(output.error[]))
-                               as Box<Error>);
-                }
-            }
-            Err(e) => {
-                return Err(box format!("Could not execute `rustdoc`: {}", e) as Box<Error>);
-            }
+        let rustdoc_args: &[String] = &[
+            "".to_string(),
+            preprocessed_path.display().to_string(),
+            format!("-o{}", out_path.display()),
+            format!("--html-before-content={}", prelude.display()),
+            format!("--html-after-content={}", postlude.display()),
+            format!("--markdown-css={}", item.path_to_root.join("rust-book.css").display()),
+            "--markdown-no-toc".to_string(),
+        ];
+        let output_result = rustdoc::main_args(rustdoc_args);
+        if output_result != 0 {
+            let message = format!("Could not execute `rustdoc` with {:?}: {}",
+                                  rustdoc_args, output_result);
+            return Err(box message as Box<Error>);
         }
     }
 
@@ -167,29 +160,24 @@ impl Subcommand for Build {
             tgt = Path::new(os::args()[3].clone());
         }
 
-        let _ = fs::mkdir(&tgt, io::USER_DIR); // FIXME: handle errors
+        try!(fs::mkdir(&tgt, io::USER_DIR));
 
-        // FIXME: handle errors
-        let _ = File::create(&tgt.join("rust-book.css")).write_str(css::STYLE);
+        try!(File::create(&tgt.join("rust-book.css")).write_str(css::STYLE));
 
-        let summary = File::open(&src.join("SUMMARY.md"));
+        let summary = try!(File::open(&src.join("SUMMARY.md")));
         match book::parse_summary(summary, &src) {
             Ok(book) => {
                 // execute rustdoc on the whole book
-                let _ = render(&book, &tgt).map_err(|err| {
-                    term.err(format!("error: {}", err.description())[]);
-                    err.detail().map(|detail| {
-                        term.err(format!("detail: {}", detail)[]);
-                    })
-                });
+                render(&book, &tgt)
             }
             Err(errors) => {
+                let n = errors.len();
                 for err in errors.into_iter() {
-                    term.err(err[]);
+                    term.err(&format!("error: {}", err)[]);
                 }
+
+                Err(box format!("{} errors occurred", n) as Box<Error>)
             }
         }
-
-        Ok(()) // lol
     }
 }
