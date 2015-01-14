@@ -8,3 +8,4 @@ authors = [ "Steve Klabnik <steve@steveklabnik.com>",
 description = "Create multi-chapter documentation with Rustdoc."
 license = "Apache-2.0"
 repository = "https://github.com/steveklabnik/rustbook"
+documentation = "http://steveklabnik.github.io/rustbook/rustbook/"
