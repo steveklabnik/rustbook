@@ -29,8 +29,8 @@ pub struct Book {
 /// A depth-first iterator over a book.
 pub struct BookItems<'a> {
     cur_items: &'a [BookItem],
-    cur_idx: uint,
-    stack: Vec<(&'a [BookItem], uint)>,
+    cur_idx: usize,
+    stack: Vec<(&'a [BookItem], usize)>,
 }
 
 impl<'a> Iterator for BookItems<'a> {
@@ -80,7 +80,7 @@ impl Book {
 pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String>> {
     fn collapse(stack: &mut Vec<BookItem>,
                 top_items: &mut Vec<BookItem>,
-                to_level: uint) {
+                to_level: usize) {
         loop {
             if stack.len() < to_level { return }
             if stack.len() == 1 {
@@ -124,13 +124,15 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
             let path_from_root = match src.join(given_path.unwrap()).path_relative_from(src) {
                 Some(p) => p,
                 None => {
-                    errors.push(format!("Paths in SUMMARY.md must be relative, \
+                    errors.push(format!("paths in SUMMARY.md must be relative, \
                                          but path '{}' for section '{}' is not.",
                                          given_path.unwrap(), title));
                     Path::new("")
                 }
             };
-            let path_to_root = Path::new(iter::repeat("../").take(path_from_root.components().count() - 1).collect::<String>());
+            let path_to_root = Path::new(iter::repeat("../")
+                                             .take(path_from_root.components().count() - 1)
+                                             .collect::<String>());
             let item = BookItem {
                 title: title,
                 path: path_from_root,
@@ -139,15 +141,16 @@ pub fn parse_summary<R: Reader>(input: R, src: &Path) -> Result<Book, Vec<String
             };
             let level = cap.name("indent").unwrap().chars().map(|c| {
                 match c {
-                    ' ' => 1u,
+                    ' ' => 1us,
                     '\t' => 4,
                     _ => unreachable!()
                 }
             }).sum() / 4 + 1;
 
             if level > stack.len() + 1 {
-                // FIXME: better error message
-                errors.push(format!("Section '{}' is indented too many levels.", item.title));
+                errors.push(format!("section '{}' is indented too deeply; \
+                                     found {}, expected {} or less",
+                                    item.title, level, stack.len() + 1));
             } else if level <= stack.len() {
                 collapse(&mut stack, &mut top_items, level);
             }

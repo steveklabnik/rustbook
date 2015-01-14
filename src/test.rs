@@ -57,7 +57,8 @@ impl Subcommand for Test {
 
                         }
                         Err(e) => {
-                            return Err(box format!("Could not execute `rustdoc`: {}", e) as Box<Error>);
+                            let message = format!("Could not execute `rustdoc`: {}", e);
+                            return Err(box message as Box<Error>);
                         }
                     }
                 }

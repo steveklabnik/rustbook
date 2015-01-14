@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(slicing_syntax)]
+#![feature(slicing_syntax, box_syntax)]
 
 extern crate regex;
 
@@ -54,7 +54,12 @@ fn main() {
                     Ok(_) => {
                         match subcmd.execute(&mut term) {
                             Ok(_) => (),
-                            Err(_) => os::set_exit_status(-1),
+                            Err(err) => {
+                                term.err(&format!("error: {}", err.description())[]);
+                                err.detail().map(|detail| {
+                                    term.err(&format!("detail: {}", detail)[]);
+                                });
+                            }
                         }
                     }
                     Err(err) => {
