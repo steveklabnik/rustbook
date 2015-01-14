@@ -4,6 +4,8 @@ Build multi-page documentation with Rustdoc.
 
 [![Build Status](https://travis-ci.org/steveklabnik/rustbook.svg?branch=master)](https://travis-ci.org/steveklabnik/rustbook)
 
+- [Documentation](http://steveklabnik.github.io/rustbook/rustbook/)
+
 ## Acquiring and building
 
 ```
