@@ -88,7 +88,7 @@
 <span class='doccomment'>//! verbosity support. For now, just a wrapper around stdout/stderr.</span>
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>stdio</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>old_io</span>::<span class='ident'>stdio</span>;
 
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Term</span> {
     <span class='ident'>err</span>: <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Writer</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>

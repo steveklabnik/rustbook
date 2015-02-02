@@ -207,6 +207,9 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
@@ -220,10 +223,9 @@
 
 <span class='doccomment'>//! Basic data structures for representing a book.</span>
 
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>BufferedReader</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>old_io</span>::<span class='ident'>BufferedReader</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>::<span class='ident'>AdditiveIterator</span>;
-<span class='kw'>use</span> <span class='ident'>regex</span>::<span class='ident'>Regex</span>;
 
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>BookItem</span> {
     <span class='kw'>pub</span> <span class='ident'>title</span>: <span class='ident'>String</span>,
@@ -304,8 +306,6 @@
         }
     }
 
-    <span class='kw'>let</span> <span class='ident'>regex</span> <span class='op'>=</span> <span class='string'>r&quot;(?P&lt;indent&gt;[\t ]*)\*[:space:]*\[(?P&lt;title&gt;.*)\]\((?P&lt;path&gt;.*)\)&quot;</span>;
-    <span class='kw'>let</span> <span class='ident'>item_re</span> <span class='op'>=</span> <span class='ident'>Regex</span>::<span class='ident'>new</span>(<span class='ident'>regex</span>).<span class='ident'>unwrap</span>();
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>top_items</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>();
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>stack</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>();
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>errors</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>();
@@ -327,45 +327,51 @@
             }
         };
 
-        <span class='ident'>item_re</span>.<span class='ident'>captures</span>(<span class='kw-2'>&amp;</span><span class='ident'>line</span>[]).<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>cap</span><span class='op'>|</span> {
-            <span class='kw'>let</span> <span class='ident'>given_path</span> <span class='op'>=</span> <span class='ident'>cap</span>.<span class='ident'>name</span>(<span class='string'>&quot;path&quot;</span>);
-            <span class='kw'>let</span> <span class='ident'>title</span> <span class='op'>=</span> <span class='ident'>cap</span>.<span class='ident'>name</span>(<span class='string'>&quot;title&quot;</span>).<span class='ident'>unwrap</span>().<span class='ident'>to_string</span>();
+        <span class='kw'>let</span> <span class='ident'>star_idx</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>line</span>.<span class='ident'>find_str</span>(<span class='string'>&quot;*&quot;</span>) { <span class='prelude-val'>Some</span>(<span class='ident'>i</span>) <span class='op'>=&gt;</span> <span class='ident'>i</span>, <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='kw'>continue</span> };
 
-            <span class='kw'>let</span> <span class='ident'>path_from_root</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>src</span>.<span class='ident'>join</span>(<span class='ident'>given_path</span>.<span class='ident'>unwrap</span>()).<span class='ident'>path_relative_from</span>(<span class='ident'>src</span>) {
-                <span class='prelude-val'>Some</span>(<span class='ident'>p</span>) <span class='op'>=&gt;</span> <span class='ident'>p</span>,
-                <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> {
-                    <span class='ident'>errors</span>.<span class='ident'>push</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;paths in SUMMARY.md must be relative, \
-                                         but path &#39;{}&#39; for section &#39;{}&#39; is not.&quot;</span>,
-                                         <span class='ident'>given_path</span>.<span class='ident'>unwrap</span>(), <span class='ident'>title</span>));
-                    <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='string'>&quot;&quot;</span>)
-                }
-            };
-            <span class='kw'>let</span> <span class='ident'>path_to_root</span> <span class='op'>=</span> <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='ident'>iter</span>::<span class='ident'>repeat</span>(<span class='string'>&quot;../&quot;</span>)
-                                             .<span class='ident'>take</span>(<span class='ident'>path_from_root</span>.<span class='ident'>components</span>().<span class='ident'>count</span>() <span class='op'>-</span> <span class='number'>1</span>)
-                                             .<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;</span>());
-            <span class='kw'>let</span> <span class='ident'>item</span> <span class='op'>=</span> <span class='ident'>BookItem</span> {
-                <span class='ident'>title</span>: <span class='ident'>title</span>,
-                <span class='ident'>path</span>: <span class='ident'>path_from_root</span>,
-                <span class='ident'>path_to_root</span>: <span class='ident'>path_to_root</span>,
-                <span class='ident'>children</span>: <span class='macro'>vec</span><span class='macro'>!</span>(),
-            };
-            <span class='kw'>let</span> <span class='ident'>level</span> <span class='op'>=</span> <span class='ident'>cap</span>.<span class='ident'>name</span>(<span class='string'>&quot;indent&quot;</span>).<span class='ident'>unwrap</span>().<span class='ident'>chars</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>c</span><span class='op'>|</span> {
-                <span class='kw'>match</span> <span class='ident'>c</span> {
-                    <span class='string'>&#39; &#39;</span> <span class='op'>=&gt;</span> <span class='number'>1us</span>,
-                    <span class='string'>&#39;\t&#39;</span> <span class='op'>=&gt;</span> <span class='number'>4</span>,
-                    _ <span class='op'>=&gt;</span> <span class='macro'>unreachable</span><span class='macro'>!</span>()
-                }
-            }).<span class='ident'>sum</span>() <span class='op'>/</span> <span class='number'>4</span> <span class='op'>+</span> <span class='number'>1</span>;
+        <span class='kw'>let</span> <span class='ident'>start_bracket</span> <span class='op'>=</span> <span class='ident'>star_idx</span> <span class='op'>+</span> <span class='ident'>line</span>[<span class='ident'>star_idx</span>..].<span class='ident'>find_str</span>(<span class='string'>&quot;[&quot;</span>).<span class='ident'>unwrap</span>();
+        <span class='kw'>let</span> <span class='ident'>end_bracket</span> <span class='op'>=</span> <span class='ident'>start_bracket</span> <span class='op'>+</span> <span class='ident'>line</span>[<span class='ident'>start_bracket</span>..].<span class='ident'>find_str</span>(<span class='string'>&quot;](&quot;</span>).<span class='ident'>unwrap</span>();
+        <span class='kw'>let</span> <span class='ident'>start_paren</span> <span class='op'>=</span> <span class='ident'>end_bracket</span> <span class='op'>+</span> <span class='number'>1</span>;
+        <span class='kw'>let</span> <span class='ident'>end_paren</span> <span class='op'>=</span> <span class='ident'>start_paren</span> <span class='op'>+</span> <span class='ident'>line</span>[<span class='ident'>start_paren</span>..].<span class='ident'>find_str</span>(<span class='string'>&quot;)&quot;</span>).<span class='ident'>unwrap</span>();
 
-            <span class='kw'>if</span> <span class='ident'>level</span> <span class='op'>&gt;</span> <span class='ident'>stack</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='number'>1</span> {
-                <span class='ident'>errors</span>.<span class='ident'>push</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;section &#39;{}&#39; is indented too deeply; \
-                                     found {}, expected {} or less&quot;</span>,
-                                    <span class='ident'>item</span>.<span class='ident'>title</span>, <span class='ident'>level</span>, <span class='ident'>stack</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='number'>1</span>));
-            } <span class='kw'>else</span> <span class='kw'>if</span> <span class='ident'>level</span> <span class='op'>&lt;=</span> <span class='ident'>stack</span>.<span class='ident'>len</span>() {
-                <span class='ident'>collapse</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>stack</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>top_items</span>, <span class='ident'>level</span>);
+        <span class='kw'>let</span> <span class='ident'>given_path</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>line</span>[<span class='ident'>start_paren</span> <span class='op'>+</span> <span class='number'>1</span> .. <span class='ident'>end_paren</span>];
+        <span class='kw'>let</span> <span class='ident'>title</span> <span class='op'>=</span> <span class='ident'>line</span>[<span class='ident'>start_bracket</span> <span class='op'>+</span> <span class='number'>1</span>..<span class='ident'>end_bracket</span>].<span class='ident'>to_string</span>();
+        <span class='kw'>let</span> <span class='ident'>indent</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>line</span>[..<span class='ident'>star_idx</span>];
+
+        <span class='kw'>let</span> <span class='ident'>path_from_root</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>src</span>.<span class='ident'>join</span>(<span class='ident'>given_path</span>).<span class='ident'>path_relative_from</span>(<span class='ident'>src</span>) {
+            <span class='prelude-val'>Some</span>(<span class='ident'>p</span>) <span class='op'>=&gt;</span> <span class='ident'>p</span>,
+            <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> {
+                <span class='ident'>errors</span>.<span class='ident'>push</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;paths in SUMMARY.md must be relative, \
+                                     but path &#39;{}&#39; for section &#39;{}&#39; is not.&quot;</span>,
+                                     <span class='ident'>given_path</span>, <span class='ident'>title</span>));
+                <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='string'>&quot;&quot;</span>)
             }
-            <span class='ident'>stack</span>.<span class='ident'>push</span>(<span class='ident'>item</span>)
-        });
+        };
+        <span class='kw'>let</span> <span class='ident'>path_to_root</span> <span class='op'>=</span> <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='ident'>iter</span>::<span class='ident'>repeat</span>(<span class='string'>&quot;../&quot;</span>)
+                                         .<span class='ident'>take</span>(<span class='ident'>path_from_root</span>.<span class='ident'>components</span>().<span class='ident'>count</span>() <span class='op'>-</span> <span class='number'>1</span>)
+                                         .<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>String</span><span class='op'>&gt;</span>());
+        <span class='kw'>let</span> <span class='ident'>item</span> <span class='op'>=</span> <span class='ident'>BookItem</span> {
+            <span class='ident'>title</span>: <span class='ident'>title</span>,
+            <span class='ident'>path</span>: <span class='ident'>path_from_root</span>,
+            <span class='ident'>path_to_root</span>: <span class='ident'>path_to_root</span>,
+            <span class='ident'>children</span>: <span class='macro'>vec</span><span class='macro'>!</span>(),
+        };
+        <span class='kw'>let</span> <span class='ident'>level</span> <span class='op'>=</span> <span class='ident'>indent</span>.<span class='ident'>chars</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>c</span><span class='op'>|</span> {
+            <span class='kw'>match</span> <span class='ident'>c</span> {
+                <span class='string'>&#39; &#39;</span> <span class='op'>=&gt;</span> <span class='number'>1us</span>,
+                <span class='string'>&#39;\t&#39;</span> <span class='op'>=&gt;</span> <span class='number'>4</span>,
+                _ <span class='op'>=&gt;</span> <span class='macro'>unreachable</span><span class='macro'>!</span>()
+            }
+        }).<span class='ident'>sum</span>() <span class='op'>/</span> <span class='number'>4</span> <span class='op'>+</span> <span class='number'>1</span>;
+
+        <span class='kw'>if</span> <span class='ident'>level</span> <span class='op'>&gt;</span> <span class='ident'>stack</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='number'>1</span> {
+            <span class='ident'>errors</span>.<span class='ident'>push</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;section &#39;{}&#39; is indented too deeply; \
+                                 found {}, expected {} or less&quot;</span>,
+                                <span class='ident'>item</span>.<span class='ident'>title</span>, <span class='ident'>level</span>, <span class='ident'>stack</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='number'>1</span>));
+        } <span class='kw'>else</span> <span class='kw'>if</span> <span class='ident'>level</span> <span class='op'>&lt;=</span> <span class='ident'>stack</span>.<span class='ident'>len</span>() {
+            <span class='ident'>collapse</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>stack</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>top_items</span>, <span class='ident'>level</span>);
+        }
+        <span class='ident'>stack</span>.<span class='ident'>push</span>(<span class='ident'>item</span>)
     }
 
     <span class='kw'>if</span> <span class='ident'>errors</span>.<span class='ident'>is_empty</span>() {
