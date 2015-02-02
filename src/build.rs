@@ -11,8 +11,8 @@
 //! Implementation of the `build` subcommand, used to compile a book.
 
 use std::os;
-use std::io;
-use std::io::{fs, File, BufferedWriter, TempDir, IoResult};
+use std::old_io;
+use std::old_io::{fs, File, BufferedWriter, TempDir, IoResult};
 
 use subcommand::Subcommand;
 use term::Term;
@@ -20,8 +20,7 @@ use error::{Error, CliResult, CommandResult};
 use book;
 use book::{Book, BookItem};
 use css;
-
-use regex::Regex;
+use javascript;
 
 use rustdoc;
 
@@ -63,7 +62,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
         Ok(())
     }
 
-    try!(writeln!(out, "<div id='toc'>"));
+    try!(writeln!(out, "<div id='toc' class='mobile-hidden'>"));
     try!(writeln!(out, "<ul class='chapter'>"));
     try!(walk_items(&book.chapters[], "", path_to_root, out));
     try!(writeln!(out, "</ul>"));
@@ -80,9 +79,6 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
 
         let out_path = tgt.join(item.path.dirname());
 
-        let regex = r"\[(?P<title>[^]]*)\]\((?P<url_stem>[^)]*)\.(?P<ext>md|markdown)\)";
-        let md_urls = Regex::new(regex).unwrap();
-
         let src;
         if os::args().len() < 3 {
             src = os::getcwd().unwrap().clone();
@@ -93,7 +89,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let markdown_data = try!(File::open(&src.join(&item.path)).read_to_string());
         let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
         {
-            let urls = md_urls.replace_all(&markdown_data[], "[$title]($url_stem.html)");
+            let urls = markdown_data.replace(".md)", ".html)");
             try!(File::create(&preprocessed_path)
                       .write_str(&urls[]));
         }
@@ -102,6 +98,14 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let prelude = tmp.path().join("prelude.html");
         {
             let mut toc = BufferedWriter::new(try!(File::create(&prelude)));
+            try!(writeln!(&mut toc, r#"<div id="nav">
+                <button id="toggle-nav">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="bar"></span>
+                  <span class="bar"></span>
+                  <span class="bar"></span>
+                </button>
+              </div>"#));
             let _ = write_toc(book, &item.path_to_root, &mut toc);
             try!(writeln!(&mut toc, "<div id='page-wrapper'>"));
             try!(writeln!(&mut toc, "<div id='page'>"));
@@ -111,10 +115,11 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         let postlude = tmp.path().join("postlude.html");
         {
             let mut toc = BufferedWriter::new(try!(File::create(&postlude)));
+            try!(toc.write_str(javascript::JAVASCRIPT));
             try!(writeln!(&mut toc, "</div></div>"));
         }
 
-        try!(fs::mkdir_recursive(&out_path, io::USER_DIR));
+        try!(fs::mkdir_recursive(&out_path, old_io::USER_DIR));
 
         let rustdoc_args: &[String] = &[
             "".to_string(),
@@ -160,7 +165,7 @@ impl Subcommand for Build {
             tgt = Path::new(os::args()[3].clone());
         }
 
-        try!(fs::mkdir(&tgt, io::USER_DIR));
+        try!(fs::mkdir(&tgt, old_io::USER_DIR));
 
         try!(File::create(&tgt.join("rust-book.css")).write_str(css::STYLE));
 

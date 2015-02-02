@@ -11,9 +11,9 @@
 //! Error handling utilities. WIP.
 
 use std::fmt;
-use std::fmt::{Show, Formatter};
+use std::fmt::{Debug, Formatter};
 
-use std::io::IoError;
+use std::old_io::IoError;
 
 pub type CliError = Box<Error + 'static>;
 pub type CliResult<T> = Result<T, CliError>;
@@ -32,7 +32,7 @@ pub trait FromError<E> {
     fn from_err(err: E) -> Self;
 }
 
-impl Show for Box<Error + 'static> {
+impl Debug for Box<Error + 'static> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.description())
     }

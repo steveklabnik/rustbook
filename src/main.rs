@@ -9,8 +9,12 @@
 // except according to those terms.
 
 #![feature(slicing_syntax, box_syntax)]
-
-extern crate regex;
+#![feature(collections)]
+#![feature(core)]
+#![feature(io)]
+#![feature(os)]
+#![feature(path)]
+#![feature(rustdoc)]
 
 extern crate rustdoc;
 
@@ -39,6 +43,7 @@ mod serve;
 mod test;
 
 mod css;
+mod javascript;
 
 #[cfg(not(test))] // thanks #12327
 fn main() {

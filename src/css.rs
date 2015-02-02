@@ -29,6 +29,7 @@ body {
     font-size: 16px;
     background: none repeat scroll 0% 0% #FFF;
     box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
 }
 
 #page-wrapper {
@@ -40,12 +41,14 @@ body {
     bottom: 0px;
     box-sizing: border-box;
     background: none repeat scroll 0% 0% #FFF;
+    -webkit-overflow-scrolling: touch;
 }
 
 #page {
     margin-left: auto;
     margin-right:auto;
-    width: 750px;
+    max-width: 750px;
+    padding-bottom: 50px;
 }
 
 .chapter {
@@ -69,4 +72,66 @@ body {
 .chapter li a {
     color: #000000;
 }
+
+@media only screen and (max-width: 1060px) {
+    #toc {
+        width: 100%;
+        margin-right: 0;
+        top: 40px;
+    }
+    #page-wrapper {
+        top: 40px;
+        left: 15px;
+        padding-right: 15px;
+    }
+    .mobile-hidden {
+        display: none;
+    }
+}
+
+
+#toggle-nav {
+    height: 20px;
+    width:  30px;
+    padding: 3px 3px 0 3px;
+}
+
+#toggle-nav {
+    margin-top: 5px;
+    width: 30px;
+    height: 30px;
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 3px 3px 3px 3px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.bar {
+    display: block;
+    background-color: #000;
+    border-radius: 2px;
+    width: 100%;
+    height: 2px;
+    margin: 2px 0 3px;
+    padding: 0;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
 "#;
