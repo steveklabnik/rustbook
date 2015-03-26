@@ -10,13 +10,16 @@
 
 //! Implementation of the `build` subcommand, used to compile a book.
 
-use std::os;
-use std::old_io;
-use std::old_io::{fs, File, BufferedWriter, TempDir, IoResult};
+use std::env;
+use std::fs::{self, File};
+use std::io::prelude::*;
+use std::io::{self, BufWriter};
+use std::path::{Path, PathBuf};
+use rustc_back::tempdir::TempDir;
 
 use subcommand::Subcommand;
 use term::Term;
-use error::{Error, CliResult, CommandResult};
+use error::{err, CliResult, CommandResult};
 use book;
 use book::{Book, BookItem};
 use css;
@@ -28,33 +31,33 @@ struct Build;
 
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
     if name == "build" {
-        Some(box Build as Box<Subcommand>)
+        Some(Box::new(Build))
     } else {
         None
     }
 }
 
-fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()> {
+fn write_toc(book: &Book, path_to_root: &Path, out: &mut Write) -> io::Result<()> {
     fn walk_items(items: &[BookItem],
                   section: &str,
                   path_to_root: &Path,
-                  out: &mut Writer) -> IoResult<()> {
+                  out: &mut Write) -> io::Result<()> {
         for (i, item) in items.iter().enumerate() {
-            try!(walk_item(item, &format!("{}{}.", section, i + 1)[], path_to_root, out));
+            try!(walk_item(item, &format!("{}{}.", section, i + 1)[..], path_to_root, out));
         }
         Ok(())
     }
     fn walk_item(item: &BookItem,
                  section: &str,
                  path_to_root: &Path,
-                 out: &mut Writer) -> IoResult<()> {
+                 out: &mut Write) -> io::Result<()> {
         try!(writeln!(out, "<li><a href='{}'><b>{}</b> {}</a>",
-                 path_to_root.join(item.path.with_extension("html")).display(),
+                 path_to_root.join(&item.path.with_extension("html")).display(),
                  section,
                  item.title));
         if !item.children.is_empty() {
             try!(writeln!(out, "<ul class='section'>"));
-            let _ = walk_items(&item.children[], section, path_to_root, out);
+            let _ = walk_items(&item.children[..], section, path_to_root, out);
             try!(writeln!(out, "</ul>"));
         }
         try!(writeln!(out, "</li>"));
@@ -64,7 +67,7 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 
     try!(writeln!(out, "<div id='toc' class='mobile-hidden'>"));
     try!(writeln!(out, "<ul class='chapter'>"));
-    try!(walk_items(&book.chapters[], "", path_to_root, out));
+    try!(walk_items(&book.chapters[..], "", path_to_root, out));
     try!(writeln!(out, "</ul>"));
     try!(writeln!(out, "</div>"));
 
@@ -74,30 +77,35 @@ fn write_toc(book: &Book, path_to_root: &Path, out: &mut Writer) -> IoResult<()>
 fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     let tmp = try!(TempDir::new("rust-book"));
 
-    for (section, item) in book.iter() {
-        println!("{} {}", section, item.title);
-
-        let out_path = tgt.join(item.path.dirname());
+    for (_section, item) in book.iter() {
+        let out_path = match item.path.parent() {
+            Some(p) => tgt.join(p),
+            None => tgt.to_path_buf(),
+        };
 
         let src;
-        if os::args().len() < 3 {
-            src = os::getcwd().unwrap().clone();
+        if env::args().len() < 3 {
+            src = env::current_dir().unwrap().clone();
         } else {
-            src = Path::new(os::args()[2].clone());
+            src = PathBuf::from(&env::args().nth(2).unwrap());
         }
         // preprocess the markdown, rerouting markdown references to html references
-        let markdown_data = try!(File::open(&src.join(&item.path)).read_to_string());
-        let preprocessed_path = tmp.path().join(item.path.filename().unwrap());
+        let mut markdown_data = String::new();
+        try!(File::open(&src.join(&item.path)).and_then(|mut f| {
+            f.read_to_string(&mut markdown_data)
+        }));
+        let preprocessed_path = tmp.path().join(item.path.file_name().unwrap());
         {
             let urls = markdown_data.replace(".md)", ".html)");
-            try!(File::create(&preprocessed_path)
-                      .write_str(&urls[]));
+            try!(File::create(&preprocessed_path).and_then(|mut f| {
+                f.write_all(urls.as_bytes())
+            }));
         }
 
         // write the prelude to a temporary HTML file for rustdoc inclusion
         let prelude = tmp.path().join("prelude.html");
         {
-            let mut toc = BufferedWriter::new(try!(File::create(&prelude)));
+            let mut toc = BufWriter::new(try!(File::create(&prelude)));
             try!(writeln!(&mut toc, r#"<div id="nav">
                 <button id="toggle-nav">
                   <span class="sr-only">Toggle navigation</span>
@@ -114,12 +122,12 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         // write the postlude to a temporary HTML file for rustdoc inclusion
         let postlude = tmp.path().join("postlude.html");
         {
-            let mut toc = BufferedWriter::new(try!(File::create(&postlude)));
-            try!(toc.write_str(javascript::JAVASCRIPT));
+            let mut toc = BufWriter::new(try!(File::create(&postlude)));
+            try!(toc.write_all(javascript::JAVASCRIPT.as_bytes()));
             try!(writeln!(&mut toc, "</div></div>"));
         }
 
-        try!(fs::mkdir_recursive(&out_path, old_io::USER_DIR));
+        try!(fs::create_dir_all(&out_path));
 
         let rustdoc_args: &[String] = &[
             "".to_string(),
@@ -134,7 +142,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         if output_result != 0 {
             let message = format!("Could not execute `rustdoc` with {:?}: {}",
                                   rustdoc_args, output_result);
-            return Err(box message as Box<Error>);
+            return Err(err(&message));
         }
     }
 
@@ -149,39 +157,41 @@ impl Subcommand for Build {
     }
     fn usage(&self) {}
     fn execute(&mut self, term: &mut Term) -> CommandResult<()> {
-        let cwd = os::getcwd().unwrap();
+        let cwd = env::current_dir().unwrap();
         let src;
         let tgt;
 
-        if os::args().len() < 3 {
+        if env::args().len() < 3 {
             src = cwd.clone();
         } else {
-            src = Path::new(os::args()[2].clone());
+            src = PathBuf::from(&env::args().nth(2).unwrap());
         }
 
-        if os::args().len() < 4 {
+        if env::args().len() < 4 {
             tgt = cwd.join("_book");
         } else {
-            tgt = Path::new(os::args()[3].clone());
+            tgt = PathBuf::from(&env::args().nth(3).unwrap());
         }
 
-        try!(fs::mkdir(&tgt, old_io::USER_DIR));
+        try!(fs::create_dir(&tgt));
 
-        try!(File::create(&tgt.join("rust-book.css")).write_str(css::STYLE));
+        try!(File::create(&tgt.join("rust-book.css")).and_then(|mut f| {
+            f.write_all(css::STYLE.as_bytes())
+        }));
 
-        let summary = try!(File::open(&src.join("SUMMARY.md")));
-        match book::parse_summary(summary, &src) {
+        let mut summary = try!(File::open(&src.join("SUMMARY.md")));
+        match book::parse_summary(&mut summary, &src) {
             Ok(book) => {
                 // execute rustdoc on the whole book
                 render(&book, &tgt)
             }
             Err(errors) => {
                 let n = errors.len();
-                for err in errors.into_iter() {
-                    term.err(&format!("error: {}", err)[]);
+                for err in errors {
+                    term.err(&format!("error: {}", err)[..]);
                 }
 
-                Err(box format!("{} errors occurred", n) as Box<Error>)
+                Err(err(&format!("{} errors occurred", n)))
             }
         }
     }

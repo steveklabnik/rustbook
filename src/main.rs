@@ -8,29 +8,22 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(slicing_syntax, box_syntax)]
-#![feature(collections)]
+#![deny(warnings)]
+
 #![feature(core)]
-#![feature(io)]
-#![feature(os)]
-#![feature(path)]
+#![feature(exit_status)]
 #![feature(rustdoc)]
+#![feature(rustc_private)]
+#![feature(path_relative_from)]
+#![feature(convert)]
 
 extern crate rustdoc;
+extern crate rustc_back;
 
-use std::os;
+use std::env;
+use std::error::Error;
 use subcommand::Subcommand;
 use term::Term;
-
-macro_rules! try (
-    ($expr:expr) => ({
-        use error;
-        match $expr {
-            Ok(val) => val,
-            Err(err) => return Err(error::FromError::from_err(err))
-        }
-    })
-);
 
 mod term;
 mod error;
@@ -48,22 +41,19 @@ mod javascript;
 #[cfg(not(test))] // thanks #12327
 fn main() {
     let mut term = Term::new();
-    let cmd = os::args();
+    let cmd: Vec<_> = env::args().collect();
 
-    if cmd.len() < 1 {
+    if cmd.len() <= 1 {
         help::usage()
     } else {
-        match subcommand::parse_name(&cmd[1][]) {
+        match subcommand::parse_name(&cmd[1][..]) {
             Some(mut subcmd) => {
-                match subcmd.parse_args(cmd.tail()) {
+                match subcmd.parse_args(&cmd[..cmd.len()-1]) {
                     Ok(_) => {
                         match subcmd.execute(&mut term) {
                             Ok(_) => (),
                             Err(err) => {
-                                term.err(&format!("error: {}", err.description())[]);
-                                err.detail().map(|detail| {
-                                    term.err(&format!("detail: {}", detail)[]);
-                                });
+                                term.err(&format!("error: {}", err));
                             }
                         }
                     }
