@@ -19,10 +19,10 @@
 extern crate rustdoc;
 extern crate rustc_back;
 
-use std::env;
-use std::error::Error;
-use subcommand::Subcommand;
-use term::Term;
+#[cfg(not(test))] use std::env;
+#[cfg(not(test))] use std::error::Error;
+#[cfg(not(test))] use subcommand::Subcommand;
+#[cfg(not(test))] use term::Term;
 
 mod term;
 mod error;

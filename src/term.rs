@@ -20,6 +20,7 @@ pub struct Term {
 }
 
 impl Term {
+    #[allow(dead_code)]
     pub fn new() -> Term {
         Term {
             err: Box::new(io::stderr())
