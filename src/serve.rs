@@ -15,8 +15,10 @@ use error::CliResult;
 use error::CommandResult;
 use term::Term;
 
+#[allow(dead_code)]
 struct Serve;
 
+#[allow(dead_code)]
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
     if name == "serve" {
         Some(Box::new(Serve))

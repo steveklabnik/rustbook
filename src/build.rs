@@ -27,8 +27,10 @@ use javascript;
 
 use rustdoc;
 
+#[allow(dead_code)]
 struct Build;
 
+#[allow(dead_code)]
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
     if name == "build" {
         Some(Box::new(Build))

@@ -15,8 +15,10 @@ use error::CliResult;
 use error::CommandResult;
 use term::Term;
 
+#[allow(dead_code)]
 struct Help;
 
+#[allow(dead_code)]
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
     match name {
         "help" | "--help" | "-h" | "-?" => Some(Box::new(Help)),

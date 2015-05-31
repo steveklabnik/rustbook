@@ -31,6 +31,7 @@ pub trait Subcommand {
 }
 
 /// Create a Subcommand object based on its name.
+#[allow(dead_code)]
 pub fn parse_name(name: &str) -> Option<Box<Subcommand>> {
     let cmds: [fn(&str) -> Option<Box<Subcommand>>; 4] = [help::parse_cmd,
                                                           build::parse_cmd,

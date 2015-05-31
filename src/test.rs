@@ -19,8 +19,10 @@ use std::fs::File;
 use std::env;
 use std::process::Command;
 
+#[allow(dead_code)]
 struct Test;
 
+#[allow(dead_code)]
 pub fn parse_cmd(name: &str) -> Option<Box<Subcommand>> {
     if name == "test" {
         Some(Box::new(Test))
