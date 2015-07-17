@@ -1,4 +1,6 @@
 language: rust
+rust:
+  - nightly
 after_success:
   - cargo doc
   - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && bash deploy.sh
