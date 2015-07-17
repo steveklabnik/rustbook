@@ -1,8 +1,11 @@
 language: rust
+rust:
+  - nightly
 after_success:
   - cargo doc
   - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && bash deploy.sh
 
+sudo: false
 env:
   global:
     secure: Hb2DqNatr4MA9kCI+eq2AItWqMvrZ+D/cMXQx+Tz4Ww77SIefDOkiK1kkWE9ub3DGbdl9Kyk6+aZqxmssZLsB1txiHez5K7KR3Z3QV5c1IFpAF08zRCljxo73dAx08VQ1daMkOdfKLXVPeI1VlwWuaN+CwkTbGAo8i7oQJGFZl0=
