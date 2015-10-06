@@ -35,12 +35,8 @@ mod build;
 mod serve;
 mod test;
 
-mod css;
-mod javascript;
-
 static EXIT_STATUS: AtomicIsize = ATOMIC_ISIZE_INIT;
 
-#[cfg(not(test))] // thanks #12327
 fn main() {
     let mut term = Term::new();
     let cmd: Vec<_> = env::args().collect();
