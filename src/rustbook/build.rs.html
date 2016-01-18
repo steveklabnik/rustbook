@@ -9,6 +9,7 @@
 
     <title>build.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -24,17 +25,17 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -228,8 +229,45 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
 </pre><pre class='rust '>
-<span class='comment'>// Copyright 2014 The Rust Project Developers. See the COPYRIGHT</span>
+<span class='comment'>// Copyright 2014-2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
 <span class='comment'>// http://rust-lang.org/COPYRIGHT.</span>
 <span class='comment'>//</span>
@@ -241,17 +279,18 @@
 
 <span class='doccomment'>//! Implementation of the `build` subcommand, used to compile a book.</span>
 
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>old_io</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>old_io</span>::{<span class='ident'>fs</span>, <span class='ident'>File</span>, <span class='ident'>BufferedWriter</span>, <span class='ident'>TempDir</span>, <span class='ident'>IoResult</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>env</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fs</span>::{<span class='self'>self</span>, <span class='ident'>File</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='self'>self</span>, <span class='ident'>BufWriter</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>path</span>::{<span class='ident'>Path</span>, <span class='ident'>PathBuf</span>};
+<span class='kw'>use</span> <span class='ident'>rustc_back</span>::<span class='ident'>tempdir</span>::<span class='ident'>TempDir</span>;
 
 <span class='kw'>use</span> <span class='ident'>subcommand</span>::<span class='ident'>Subcommand</span>;
 <span class='kw'>use</span> <span class='ident'>term</span>::<span class='ident'>Term</span>;
-<span class='kw'>use</span> <span class='ident'>error</span>::{<span class='ident'>Error</span>, <span class='ident'>CliResult</span>, <span class='ident'>CommandResult</span>};
+<span class='kw'>use</span> <span class='ident'>error</span>::{<span class='ident'>err</span>, <span class='ident'>CliResult</span>, <span class='ident'>CommandResult</span>};
 <span class='kw'>use</span> <span class='ident'>book</span>;
 <span class='kw'>use</span> <span class='ident'>book</span>::{<span class='ident'>Book</span>, <span class='ident'>BookItem</span>};
-<span class='kw'>use</span> <span class='ident'>css</span>;
-<span class='kw'>use</span> <span class='ident'>javascript</span>;
 
 <span class='kw'>use</span> <span class='ident'>rustdoc</span>;
 
@@ -259,33 +298,40 @@
 
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>parse_cmd</span>(<span class='ident'>name</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Subcommand</span><span class='op'>&gt;&gt;</span> {
     <span class='kw'>if</span> <span class='ident'>name</span> <span class='op'>==</span> <span class='string'>&quot;build&quot;</span> {
-        <span class='prelude-val'>Some</span>(<span class='kw'>box</span> <span class='ident'>Build</span> <span class='kw'>as</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Subcommand</span><span class='op'>&gt;</span>)
+        <span class='prelude-val'>Some</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Build</span>))
     } <span class='kw'>else</span> {
         <span class='prelude-val'>None</span>
     }
 }
 
-<span class='kw'>fn</span> <span class='ident'>write_toc</span>(<span class='ident'>book</span>: <span class='kw-2'>&amp;</span><span class='ident'>Book</span>, <span class='ident'>path_to_root</span>: <span class='kw-2'>&amp;</span><span class='ident'>Path</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Writer</span>) <span class='op'>-&gt;</span> <span class='ident'>IoResult</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+<span class='kw'>fn</span> <span class='ident'>write_toc</span>(<span class='ident'>book</span>: <span class='kw-2'>&amp;</span><span class='ident'>Book</span>, <span class='ident'>current_page</span>: <span class='kw-2'>&amp;</span><span class='ident'>BookItem</span>, <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
     <span class='kw'>fn</span> <span class='ident'>walk_items</span>(<span class='ident'>items</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>BookItem</span>],
                   <span class='ident'>section</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>,
-                  <span class='ident'>path_to_root</span>: <span class='kw-2'>&amp;</span><span class='ident'>Path</span>,
-                  <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Writer</span>) <span class='op'>-&gt;</span> <span class='ident'>IoResult</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+                  <span class='ident'>current_page</span>: <span class='kw-2'>&amp;</span><span class='ident'>BookItem</span>,
+                  <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>for</span> (<span class='ident'>i</span>, <span class='ident'>item</span>) <span class='kw'>in</span> <span class='ident'>items</span>.<span class='ident'>iter</span>().<span class='ident'>enumerate</span>() {
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>walk_item</span>(<span class='ident'>item</span>, <span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{}{}.&quot;</span>, <span class='ident'>section</span>, <span class='ident'>i</span> <span class='op'>+</span> <span class='number'>1</span>)[], <span class='ident'>path_to_root</span>, <span class='ident'>out</span>));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>walk_item</span>(<span class='ident'>item</span>, <span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{}{}.&quot;</span>, <span class='ident'>section</span>, <span class='ident'>i</span> <span class='op'>+</span> <span class='number'>1</span>)[..], <span class='ident'>current_page</span>, <span class='ident'>out</span>));
         }
         <span class='prelude-val'>Ok</span>(())
     }
     <span class='kw'>fn</span> <span class='ident'>walk_item</span>(<span class='ident'>item</span>: <span class='kw-2'>&amp;</span><span class='ident'>BookItem</span>,
                  <span class='ident'>section</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>,
-                 <span class='ident'>path_to_root</span>: <span class='kw-2'>&amp;</span><span class='ident'>Path</span>,
-                 <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Writer</span>) <span class='op'>-&gt;</span> <span class='ident'>IoResult</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;li&gt;&lt;a href=&#39;{}&#39;&gt;&lt;b&gt;{}&lt;/b&gt; {}&lt;/a&gt;&quot;</span>,
-                 <span class='ident'>path_to_root</span>.<span class='ident'>join</span>(<span class='ident'>item</span>.<span class='ident'>path</span>.<span class='ident'>with_extension</span>(<span class='string'>&quot;html&quot;</span>)).<span class='ident'>display</span>(),
-                 <span class='ident'>section</span>,
-                 <span class='ident'>item</span>.<span class='ident'>title</span>));
+                 <span class='ident'>current_page</span>: <span class='kw-2'>&amp;</span><span class='ident'>BookItem</span>,
+                 <span class='ident'>out</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Write</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+        <span class='kw'>let</span> <span class='ident'>class_string</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>item</span>.<span class='ident'>path</span> <span class='op'>==</span> <span class='ident'>current_page</span>.<span class='ident'>path</span> {
+            <span class='string'>&quot;class=&#39;active&#39;&quot;</span>
+        } <span class='kw'>else</span> {
+            <span class='string'>&quot;&quot;</span>
+        };
+
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;li&gt;&lt;a {} href=&#39;{}&#39;&gt;&lt;b&gt;{}&lt;/b&gt; {}&lt;/a&gt;&quot;</span>,
+                      <span class='ident'>class_string</span>,
+                      <span class='ident'>current_page</span>.<span class='ident'>path_to_root</span>.<span class='ident'>join</span>(<span class='kw-2'>&amp;</span><span class='ident'>item</span>.<span class='ident'>path</span>).<span class='ident'>with_extension</span>(<span class='string'>&quot;html&quot;</span>).<span class='ident'>display</span>(),
+                      <span class='ident'>section</span>,
+                      <span class='ident'>item</span>.<span class='ident'>title</span>));
         <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>item</span>.<span class='ident'>children</span>.<span class='ident'>is_empty</span>() {
             <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;ul class=&#39;section&#39;&gt;&quot;</span>));
-            <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>walk_items</span>(<span class='kw-2'>&amp;</span><span class='ident'>item</span>.<span class='ident'>children</span>[], <span class='ident'>section</span>, <span class='ident'>path_to_root</span>, <span class='ident'>out</span>);
+            <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>walk_items</span>(<span class='kw-2'>&amp;</span><span class='ident'>item</span>.<span class='ident'>children</span>[..], <span class='ident'>section</span>, <span class='ident'>current_page</span>, <span class='ident'>out</span>);
             <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;/ul&gt;&quot;</span>));
         }
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;/li&gt;&quot;</span>));
@@ -295,7 +341,7 @@
 
     <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;div id=&#39;toc&#39; class=&#39;mobile-hidden&#39;&gt;&quot;</span>));
     <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;ul class=&#39;chapter&#39;&gt;&quot;</span>));
-    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>walk_items</span>(<span class='kw-2'>&amp;</span><span class='ident'>book</span>.<span class='ident'>chapters</span>[], <span class='string'>&quot;&quot;</span>, <span class='ident'>path_to_root</span>, <span class='ident'>out</span>));
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>walk_items</span>(<span class='kw-2'>&amp;</span><span class='ident'>book</span>.<span class='ident'>chapters</span>[..], <span class='string'>&quot;&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>current_page</span>, <span class='ident'>out</span>));
     <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;/ul&gt;&quot;</span>));
     <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='ident'>out</span>, <span class='string'>&quot;&lt;/div&gt;&quot;</span>));
 
@@ -303,54 +349,62 @@
 }
 
 <span class='kw'>fn</span> <span class='ident'>render</span>(<span class='ident'>book</span>: <span class='kw-2'>&amp;</span><span class='ident'>Book</span>, <span class='ident'>tgt</span>: <span class='kw-2'>&amp;</span><span class='ident'>Path</span>) <span class='op'>-&gt;</span> <span class='ident'>CliResult</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-    <span class='kw'>let</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>TempDir</span>::<span class='ident'>new</span>(<span class='string'>&quot;rust-book&quot;</span>));
+    <span class='kw'>let</span> <span class='ident'>tmp</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>TempDir</span>::<span class='ident'>new</span>(<span class='string'>&quot;rustbook&quot;</span>));
 
-    <span class='kw'>for</span> (<span class='ident'>section</span>, <span class='ident'>item</span>) <span class='kw'>in</span> <span class='ident'>book</span>.<span class='ident'>iter</span>() {
-        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{} {}&quot;</span>, <span class='ident'>section</span>, <span class='ident'>item</span>.<span class='ident'>title</span>);
-
-        <span class='kw'>let</span> <span class='ident'>out_path</span> <span class='op'>=</span> <span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='ident'>item</span>.<span class='ident'>path</span>.<span class='ident'>dirname</span>());
+    <span class='kw'>for</span> (<span class='ident'>_section</span>, <span class='ident'>item</span>) <span class='kw'>in</span> <span class='ident'>book</span>.<span class='ident'>iter</span>() {
+        <span class='kw'>let</span> <span class='ident'>out_path</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>item</span>.<span class='ident'>path</span>.<span class='ident'>parent</span>() {
+            <span class='prelude-val'>Some</span>(<span class='ident'>p</span>) <span class='op'>=&gt;</span> <span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='ident'>p</span>),
+            <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='ident'>tgt</span>.<span class='ident'>to_path_buf</span>(),
+        };
 
         <span class='kw'>let</span> <span class='ident'>src</span>;
-        <span class='kw'>if</span> <span class='ident'>os</span>::<span class='ident'>args</span>().<span class='ident'>len</span>() <span class='op'>&lt;</span> <span class='number'>3</span> {
-            <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>os</span>::<span class='ident'>getcwd</span>().<span class='ident'>unwrap</span>().<span class='ident'>clone</span>();
+        <span class='kw'>if</span> <span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>len</span>() <span class='op'>&lt;</span> <span class='number'>3</span> {
+            <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>env</span>::<span class='ident'>current_dir</span>().<span class='ident'>unwrap</span>().<span class='ident'>clone</span>();
         } <span class='kw'>else</span> {
-            <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='ident'>os</span>::<span class='ident'>args</span>()[<span class='number'>2</span>].<span class='ident'>clone</span>());
+            <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>PathBuf</span>::<span class='ident'>from</span>(<span class='kw-2'>&amp;</span><span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>nth</span>(<span class='number'>2</span>).<span class='ident'>unwrap</span>());
         }
-        <span class='comment'>// preprocess the markdown, rerouting markdown references to html references</span>
-        <span class='kw'>let</span> <span class='ident'>markdown_data</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>open</span>(<span class='kw-2'>&amp;</span><span class='ident'>src</span>.<span class='ident'>join</span>(<span class='kw-2'>&amp;</span><span class='ident'>item</span>.<span class='ident'>path</span>)).<span class='ident'>read_to_string</span>());
-        <span class='kw'>let</span> <span class='ident'>preprocessed_path</span> <span class='op'>=</span> <span class='ident'>tmp</span>.<span class='ident'>path</span>().<span class='ident'>join</span>(<span class='ident'>item</span>.<span class='ident'>path</span>.<span class='ident'>filename</span>().<span class='ident'>unwrap</span>());
+        <span class='comment'>// preprocess the markdown, rerouting markdown references to html</span>
+        <span class='comment'>// references</span>
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>markdown_data</span> <span class='op'>=</span> <span class='ident'>String</span>::<span class='ident'>new</span>();
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>open</span>(<span class='kw-2'>&amp;</span><span class='ident'>src</span>.<span class='ident'>join</span>(<span class='kw-2'>&amp;</span><span class='ident'>item</span>.<span class='ident'>path</span>)).<span class='ident'>and_then</span>(<span class='op'>|</span><span class='kw-2'>mut</span> <span class='ident'>f</span><span class='op'>|</span> {
+            <span class='ident'>f</span>.<span class='ident'>read_to_string</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>markdown_data</span>)
+        }));
+        <span class='kw'>let</span> <span class='ident'>preprocessed_path</span> <span class='op'>=</span> <span class='ident'>tmp</span>.<span class='ident'>path</span>().<span class='ident'>join</span>(<span class='ident'>item</span>.<span class='ident'>path</span>.<span class='ident'>file_name</span>().<span class='ident'>unwrap</span>());
         {
             <span class='kw'>let</span> <span class='ident'>urls</span> <span class='op'>=</span> <span class='ident'>markdown_data</span>.<span class='ident'>replace</span>(<span class='string'>&quot;.md)&quot;</span>, <span class='string'>&quot;.html)&quot;</span>);
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>preprocessed_path</span>)
-                      .<span class='ident'>write_str</span>(<span class='kw-2'>&amp;</span><span class='ident'>urls</span>[]));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>preprocessed_path</span>).<span class='ident'>and_then</span>(<span class='op'>|</span><span class='kw-2'>mut</span> <span class='ident'>f</span><span class='op'>|</span> {
+                <span class='ident'>f</span>.<span class='ident'>write_all</span>(<span class='ident'>urls</span>.<span class='ident'>as_bytes</span>())
+            }));
         }
 
         <span class='comment'>// write the prelude to a temporary HTML file for rustdoc inclusion</span>
         <span class='kw'>let</span> <span class='ident'>prelude</span> <span class='op'>=</span> <span class='ident'>tmp</span>.<span class='ident'>path</span>().<span class='ident'>join</span>(<span class='string'>&quot;prelude.html&quot;</span>);
         {
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>toc</span> <span class='op'>=</span> <span class='ident'>BufferedWriter</span>::<span class='ident'>new</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>prelude</span>)));
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>toc</span>, <span class='string'>r#&quot;&lt;div id=&quot;nav&quot;&gt;
-                &lt;button id=&quot;toggle-nav&quot;&gt;
-                  &lt;span class=&quot;sr-only&quot;&gt;Toggle navigation&lt;/span&gt;
-                  &lt;span class=&quot;bar&quot;&gt;&lt;/span&gt;
-                  &lt;span class=&quot;bar&quot;&gt;&lt;/span&gt;
-                  &lt;span class=&quot;bar&quot;&gt;&lt;/span&gt;
-                &lt;/button&gt;
-              &lt;/div&gt;&quot;#</span>));
-            <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>write_toc</span>(<span class='ident'>book</span>, <span class='kw-2'>&amp;</span><span class='ident'>item</span>.<span class='ident'>path_to_root</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>toc</span>);
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>toc</span>, <span class='string'>&quot;&lt;div id=&#39;page-wrapper&#39;&gt;&quot;</span>));
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>toc</span>, <span class='string'>&quot;&lt;div id=&#39;page&#39;&gt;&quot;</span>));
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buffer</span> <span class='op'>=</span> <span class='ident'>BufWriter</span>::<span class='ident'>new</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>prelude</span>)));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>, <span class='string'>r#&quot;
+                &lt;div id=&quot;nav&quot;&gt;
+                    &lt;button id=&quot;toggle-nav&quot;&gt;
+                        &lt;span class=&quot;sr-only&quot;&gt;Toggle navigation&lt;/span&gt;
+                        &lt;span class=&quot;bar&quot;&gt;&lt;/span&gt;
+                        &lt;span class=&quot;bar&quot;&gt;&lt;/span&gt;
+                        &lt;span class=&quot;bar&quot;&gt;&lt;/span&gt;
+                    &lt;/button&gt;
+                &lt;/div&gt;&quot;#</span>));
+            <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>write_toc</span>(<span class='ident'>book</span>, <span class='kw-2'>&amp;</span><span class='ident'>item</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>);
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>, <span class='string'>&quot;&lt;div id=&#39;page-wrapper&#39;&gt;&quot;</span>));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>, <span class='string'>&quot;&lt;div id=&#39;page&#39;&gt;&quot;</span>));
         }
 
         <span class='comment'>// write the postlude to a temporary HTML file for rustdoc inclusion</span>
         <span class='kw'>let</span> <span class='ident'>postlude</span> <span class='op'>=</span> <span class='ident'>tmp</span>.<span class='ident'>path</span>().<span class='ident'>join</span>(<span class='string'>&quot;postlude.html&quot;</span>);
         {
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>toc</span> <span class='op'>=</span> <span class='ident'>BufferedWriter</span>::<span class='ident'>new</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>postlude</span>)));
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>toc</span>.<span class='ident'>write_str</span>(<span class='ident'>javascript</span>::<span class='ident'>JAVASCRIPT</span>));
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>toc</span>, <span class='string'>&quot;&lt;/div&gt;&lt;/div&gt;&quot;</span>));
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buffer</span> <span class='op'>=</span> <span class='ident'>BufWriter</span>::<span class='ident'>new</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>postlude</span>)));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>, <span class='string'>&quot;&lt;script src=&#39;rustbook.js&#39;&gt;&lt;/script&gt;&quot;</span>));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>, <span class='string'>&quot;&lt;script src=&#39;playpen.js&#39;&gt;&lt;/script&gt;&quot;</span>));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>writeln</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buffer</span>, <span class='string'>&quot;&lt;/div&gt;&lt;/div&gt;&quot;</span>));
         }
 
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>mkdir_recursive</span>(<span class='kw-2'>&amp;</span><span class='ident'>out_path</span>, <span class='ident'>old_io</span>::<span class='ident'>USER_DIR</span>));
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>create_dir_all</span>(<span class='kw-2'>&amp;</span><span class='ident'>out_path</span>));
 
         <span class='kw'>let</span> <span class='ident'>rustdoc_args</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>String</span>] <span class='op'>=</span> <span class='kw-2'>&amp;</span>[
             <span class='string'>&quot;&quot;</span>.<span class='ident'>to_string</span>(),
@@ -358,19 +412,25 @@
             <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;-o{}&quot;</span>, <span class='ident'>out_path</span>.<span class='ident'>display</span>()),
             <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;--html-before-content={}&quot;</span>, <span class='ident'>prelude</span>.<span class='ident'>display</span>()),
             <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;--html-after-content={}&quot;</span>, <span class='ident'>postlude</span>.<span class='ident'>display</span>()),
-            <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;--markdown-css={}&quot;</span>, <span class='ident'>item</span>.<span class='ident'>path_to_root</span>.<span class='ident'>join</span>(<span class='string'>&quot;rust-book.css&quot;</span>).<span class='ident'>display</span>()),
+            <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;--markdown-playground-url=https://play.rust-lang.org&quot;</span>),
+            <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;--markdown-css={}&quot;</span>, <span class='ident'>item</span>.<span class='ident'>path_to_root</span>.<span class='ident'>join</span>(<span class='string'>&quot;rustbook.css&quot;</span>).<span class='ident'>display</span>()),
             <span class='string'>&quot;--markdown-no-toc&quot;</span>.<span class='ident'>to_string</span>(),
         ];
         <span class='kw'>let</span> <span class='ident'>output_result</span> <span class='op'>=</span> <span class='ident'>rustdoc</span>::<span class='ident'>main_args</span>(<span class='ident'>rustdoc_args</span>);
         <span class='kw'>if</span> <span class='ident'>output_result</span> <span class='op'>!=</span> <span class='number'>0</span> {
             <span class='kw'>let</span> <span class='ident'>message</span> <span class='op'>=</span> <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;Could not execute `rustdoc` with {:?}: {}&quot;</span>,
                                   <span class='ident'>rustdoc_args</span>, <span class='ident'>output_result</span>);
-            <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='kw'>box</span> <span class='ident'>message</span> <span class='kw'>as</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Error</span><span class='op'>&gt;</span>);
+            <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>err</span>(<span class='kw-2'>&amp;</span><span class='ident'>message</span>));
         }
     }
 
     <span class='comment'>// create index.html from the root README</span>
     <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>copy</span>(<span class='kw-2'>&amp;</span><span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='string'>&quot;README.html&quot;</span>), <span class='kw-2'>&amp;</span><span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='string'>&quot;index.html&quot;</span>)));
+
+    <span class='comment'>// Copy js for playpen</span>
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>playpen</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='string'>&quot;playpen.js&quot;</span>)));
+    <span class='kw'>let</span> <span class='ident'>js</span> <span class='op'>=</span> <span class='macro'>include_bytes</span><span class='macro'>!</span>(<span class='string'>&quot;../librustdoc/html/static/playpen.js&quot;</span>);
+    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>playpen</span>.<span class='ident'>write_all</span>(<span class='ident'>js</span>));
     <span class='prelude-val'>Ok</span>(())
 }
 
@@ -380,39 +440,54 @@
     }
     <span class='kw'>fn</span> <span class='ident'>usage</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) {}
     <span class='kw'>fn</span> <span class='ident'>execute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>term</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Term</span>) <span class='op'>-&gt;</span> <span class='ident'>CommandResult</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='kw'>let</span> <span class='ident'>cwd</span> <span class='op'>=</span> <span class='ident'>os</span>::<span class='ident'>getcwd</span>().<span class='ident'>unwrap</span>();
+        <span class='kw'>let</span> <span class='ident'>cwd</span> <span class='op'>=</span> <span class='ident'>env</span>::<span class='ident'>current_dir</span>().<span class='ident'>unwrap</span>();
         <span class='kw'>let</span> <span class='ident'>src</span>;
         <span class='kw'>let</span> <span class='ident'>tgt</span>;
 
-        <span class='kw'>if</span> <span class='ident'>os</span>::<span class='ident'>args</span>().<span class='ident'>len</span>() <span class='op'>&lt;</span> <span class='number'>3</span> {
+        <span class='kw'>if</span> <span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>len</span>() <span class='op'>&lt;</span> <span class='number'>3</span> {
             <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>cwd</span>.<span class='ident'>clone</span>();
         } <span class='kw'>else</span> {
-            <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='ident'>os</span>::<span class='ident'>args</span>()[<span class='number'>2</span>].<span class='ident'>clone</span>());
+            <span class='ident'>src</span> <span class='op'>=</span> <span class='ident'>PathBuf</span>::<span class='ident'>from</span>(<span class='kw-2'>&amp;</span><span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>nth</span>(<span class='number'>2</span>).<span class='ident'>unwrap</span>());
         }
 
-        <span class='kw'>if</span> <span class='ident'>os</span>::<span class='ident'>args</span>().<span class='ident'>len</span>() <span class='op'>&lt;</span> <span class='number'>4</span> {
+        <span class='kw'>if</span> <span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>len</span>() <span class='op'>&lt;</span> <span class='number'>4</span> {
             <span class='ident'>tgt</span> <span class='op'>=</span> <span class='ident'>cwd</span>.<span class='ident'>join</span>(<span class='string'>&quot;_book&quot;</span>);
         } <span class='kw'>else</span> {
-            <span class='ident'>tgt</span> <span class='op'>=</span> <span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='ident'>os</span>::<span class='ident'>args</span>()[<span class='number'>3</span>].<span class='ident'>clone</span>());
+            <span class='ident'>tgt</span> <span class='op'>=</span> <span class='ident'>PathBuf</span>::<span class='ident'>from</span>(<span class='kw-2'>&amp;</span><span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>nth</span>(<span class='number'>3</span>).<span class='ident'>unwrap</span>());
         }
 
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>mkdir</span>(<span class='kw-2'>&amp;</span><span class='ident'>tgt</span>, <span class='ident'>old_io</span>::<span class='ident'>USER_DIR</span>));
+        <span class='comment'>// `_book` directory may already exist from previous runs. Check and</span>
+        <span class='comment'>// delete it if it exists.</span>
+        <span class='kw'>for</span> <span class='ident'>entry</span> <span class='kw'>in</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>read_dir</span>(<span class='kw-2'>&amp;</span><span class='ident'>cwd</span>)) {
+            <span class='kw'>let</span> <span class='ident'>path</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>entry</span>).<span class='ident'>path</span>();
+            <span class='kw'>if</span> <span class='ident'>path</span> <span class='op'>==</span> <span class='ident'>tgt</span> { <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>remove_dir_all</span>(<span class='kw-2'>&amp;</span><span class='ident'>tgt</span>)) }
+        }
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>fs</span>::<span class='ident'>create_dir</span>(<span class='kw-2'>&amp;</span><span class='ident'>tgt</span>));
 
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='kw-2'>&amp;</span><span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='string'>&quot;rust-book.css&quot;</span>)).<span class='ident'>write_str</span>(<span class='ident'>css</span>::<span class='ident'>STYLE</span>));
+        <span class='comment'>// Copy static files</span>
+        <span class='kw'>let</span> <span class='ident'>css</span> <span class='op'>=</span> <span class='macro'>include_bytes</span><span class='macro'>!</span>(<span class='string'>&quot;static/rustbook.css&quot;</span>);
+        <span class='kw'>let</span> <span class='ident'>js</span> <span class='op'>=</span> <span class='macro'>include_bytes</span><span class='macro'>!</span>(<span class='string'>&quot;static/rustbook.js&quot;</span>);
 
-        <span class='kw'>let</span> <span class='ident'>summary</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>open</span>(<span class='kw-2'>&amp;</span><span class='ident'>src</span>.<span class='ident'>join</span>(<span class='string'>&quot;SUMMARY.md&quot;</span>)));
-        <span class='kw'>match</span> <span class='ident'>book</span>::<span class='ident'>parse_summary</span>(<span class='ident'>summary</span>, <span class='kw-2'>&amp;</span><span class='ident'>src</span>) {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>css_file</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='string'>&quot;rustbook.css&quot;</span>)));
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>css_file</span>.<span class='ident'>write_all</span>(<span class='ident'>css</span>));
+
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>js_file</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>create</span>(<span class='ident'>tgt</span>.<span class='ident'>join</span>(<span class='string'>&quot;rustbook.js&quot;</span>)));
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>js_file</span>.<span class='ident'>write_all</span>(<span class='ident'>js</span>));
+
+
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>summary</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>open</span>(<span class='kw-2'>&amp;</span><span class='ident'>src</span>.<span class='ident'>join</span>(<span class='string'>&quot;SUMMARY.md&quot;</span>)));
+        <span class='kw'>match</span> <span class='ident'>book</span>::<span class='ident'>parse_summary</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>summary</span>, <span class='kw-2'>&amp;</span><span class='ident'>src</span>) {
             <span class='prelude-val'>Ok</span>(<span class='ident'>book</span>) <span class='op'>=&gt;</span> {
                 <span class='comment'>// execute rustdoc on the whole book</span>
                 <span class='ident'>render</span>(<span class='kw-2'>&amp;</span><span class='ident'>book</span>, <span class='kw-2'>&amp;</span><span class='ident'>tgt</span>)
             }
             <span class='prelude-val'>Err</span>(<span class='ident'>errors</span>) <span class='op'>=&gt;</span> {
                 <span class='kw'>let</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>errors</span>.<span class='ident'>len</span>();
-                <span class='kw'>for</span> <span class='ident'>err</span> <span class='kw'>in</span> <span class='ident'>errors</span>.<span class='ident'>into_iter</span>() {
-                    <span class='ident'>term</span>.<span class='ident'>err</span>(<span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;error: {}&quot;</span>, <span class='ident'>err</span>)[]);
+                <span class='kw'>for</span> <span class='ident'>err</span> <span class='kw'>in</span> <span class='ident'>errors</span> {
+                    <span class='ident'>term</span>.<span class='ident'>err</span>(<span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;error: {}&quot;</span>, <span class='ident'>err</span>)[..]);
                 }
 
-                <span class='prelude-val'>Err</span>(<span class='kw'>box</span> <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{} errors occurred&quot;</span>, <span class='ident'>n</span>) <span class='kw'>as</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Error</span><span class='op'>&gt;</span>)
+                <span class='prelude-val'>Err</span>(<span class='ident'>err</span>(<span class='kw-2'>&amp;</span><span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{} errors occurred&quot;</span>, <span class='ident'>n</span>)))
             }
         }
     }
@@ -423,36 +498,49 @@
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-        </div>
-    </div>
+    </aside>
 
     
 
@@ -464,6 +552,6 @@
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>

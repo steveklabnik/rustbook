@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Subcommand",""]]});
+initSidebarItems({});
