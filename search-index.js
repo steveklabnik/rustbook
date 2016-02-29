@@ -1,3 +1,3 @@
 var searchIndex = {};
-searchIndex['rustbook'] = {"items":[],"paths":[]};
+searchIndex["rustbook"] = {"doc":"","items":[[5,"main","rustbook","",null,{"inputs":[],"output":null}]],"paths":[]};
 initSearch(searchIndex);

@@ -9,8 +9,8 @@
 
     <title>main.rs.html -- source</title>
 
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
 
     
     
@@ -152,7 +152,7 @@
 
 <span class='kw'>static</span> <span class='ident'>EXIT_STATUS</span>: <span class='ident'>AtomicIsize</span> <span class='op'>=</span> <span class='ident'>ATOMIC_ISIZE_INIT</span>;
 
-<span class='kw'>fn</span> <span class='ident'>main</span>() {
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>main</span>() {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>term</span> <span class='op'>=</span> <span class='ident'>Term</span>::<span class='ident'>new</span>();
     <span class='kw'>let</span> <span class='ident'>cmd</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>env</span>::<span class='ident'>args</span>().<span class='ident'>collect</span>();
 
@@ -230,7 +230,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>
@@ -239,13 +239,13 @@
     
 
     <script>
-        window.rootPath = "../../";
+        window.rootPath = "../../../";
         window.currentCrate = "rustbook";
         window.playgroundUrl = "";
     </script>
-    <script src="../../jquery.js"></script>
-    <script src="../../main.js"></script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
     
-    <script defer src="../../search-index.js"></script>
+    <script defer src="../../../search-index.js"></script>
 </body>
 </html>
