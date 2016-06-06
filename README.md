@@ -2,7 +2,7 @@
 
 Build multi-page documentation with Rustdoc.
 
-Please note this is a mirror of https://github.com/rust-lang/rust/tree/master/src/rustbook , so issues should be filed on the language tracker.
+Please note this is a mirror of https://github.com/rust-lang/rust/tree/master/src/tools/rustbook , so issues should be filed on the language tracker.
 
 [![Build Status](https://travis-ci.org/steveklabnik/rustbook.svg?branch=master)](https://travis-ci.org/steveklabnik/rustbook)
 
