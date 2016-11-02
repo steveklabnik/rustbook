@@ -61,9 +61,9 @@ fn write_toc(book: &Book, current_page: &BookItem, out: &mut Write) -> io::Resul
                  section,
                  item.title)?;
         if !item.children.is_empty() {
-            writeln!(out, "<ul class='section'>")?;
+            writeln!(out, "<ol class='section'>")?;
             let _ = walk_items(&item.children[..], section, current_page, out);
-            writeln!(out, "</ul>")?;
+            writeln!(out, "</ol>")?;
         }
         writeln!(out, "</li>")?;
 
@@ -71,9 +71,9 @@ fn write_toc(book: &Book, current_page: &BookItem, out: &mut Write) -> io::Resul
     }
 
     writeln!(out, "<div id='toc' class='mobile-hidden'>")?;
-    writeln!(out, "<ul class='chapter'>")?;
+    writeln!(out, "<ol class='chapter'>")?;
     walk_items(&book.chapters[..], "", &current_page, out)?;
-    writeln!(out, "</ul>")?;
+    writeln!(out, "</ol>")?;
     writeln!(out, "</div>")?;
 
     Ok(())
@@ -131,7 +131,6 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
         {
             let mut buffer = BufWriter::new(File::create(&postlude)?);
             writeln!(&mut buffer, "<script src='rustbook.js'></script>")?;
-            writeln!(&mut buffer, "<script src='playpen.js'></script>")?;
             writeln!(&mut buffer, "</div></div>")?;
         }
 
@@ -143,7 +142,7 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
             format!("-o{}", out_path.display()),
             format!("--html-before-content={}", prelude.display()),
             format!("--html-after-content={}", postlude.display()),
-            format!("--markdown-playground-url=https://play.rust-lang.org"),
+            format!("--markdown-playground-url=https://play.rust-lang.org/"),
             format!("--markdown-css={}", item.path_to_root.join("rustbook.css").display()),
             "--markdown-no-toc".to_string(),
         ];
@@ -158,10 +157,6 @@ fn render(book: &Book, tgt: &Path) -> CliResult<()> {
     // create index.html from the root README
     fs::copy(&tgt.join("README.html"), &tgt.join("index.html"))?;
 
-    // Copy js for playpen
-    let mut playpen = File::create(tgt.join("playpen.js"))?;
-    let js = include_bytes!("../librustdoc/html/static/playpen.js");
-    playpen.write_all(js)?;
     Ok(())
 }
 
